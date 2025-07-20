@@ -1,0 +1,55 @@
+#include "HardwareBuilder.h"
+
+HardwareBuilder::HardwareBuilder()
+{
+}
+
+HardwareBuilder::~HardwareBuilder() {}
+
+Module HardwareBuilder::X20BM11(const std::string &name, const std::string &version,
+                                Module *targetModule, const std::string& targetModuleName)
+{
+    std::string resolvedTargetName = targetModuleName;
+    if (resolvedTargetName.empty() && targetModule) {
+        resolvedTargetName = targetModule->name;
+    }
+    return Module(name, cardType::X20BM11, version, {
+        Connection(ConnectorType::X2X1,
+                ConnectorType::X2X2,
+                targetModule,
+                resolvedTargetName
+                )
+    });
+}
+
+Module HardwareBuilder::X20TB12(const std::string &name)
+{
+    return Module(name, cardType::X20TB12, "1.0.0.0", {});
+}
+
+Module HardwareBuilder::IOCARD2(const std::string &name, cardType type, const std::string& targetTB12, const std::string& targetBM11, const std::string &version)
+{
+    Connection con1(ConnectorType::SS1, ConnectorType::SS, nullptr, targetTB12);
+    Connection con2(ConnectorType::SL, ConnectorType::SL1, nullptr, targetBM11);
+    Module m(name, type, version, std::vector<Connection>{con1,con2});
+    return m;
+}
+
+std::vector<Module> HardwareBuilder::IOCARD(const std::string &name, cardType type, const std::string& targetName, const std::string &version)
+{
+    std::vector<Module> res;
+    res.reserve(3);
+    res.emplace_back(X20BM11("X20BM11_" + name, "1.1.0.0", nullptr, targetName));
+    Module* base = &res.back();
+    res.emplace_back(X20TB12("X20TB12_" + name));
+    Module* tb = &res.back();
+
+
+    Connection con1(ConnectorType::SS1, ConnectorType::SS, tb, tb->name);
+    Connection con2(ConnectorType::SL, ConnectorType::SL1, base, base->name);
+
+    // Create the main IO card module
+    res.emplace_back(name, type, version, std::vector<Connection>{con1, con2});
+
+    return res;
+}
