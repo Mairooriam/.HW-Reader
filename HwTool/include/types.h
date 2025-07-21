@@ -4,6 +4,9 @@
 #include <ostream>
 #include <magic_enum/magic_enum.hpp>
 #include <tinyxml2.h>
+
+//TODO: move implementations to .cpp file for the printings or separate
+
 enum class cardType{
     ERROR = 0,
 
@@ -141,3 +144,14 @@ inline std::ostream& operator<<(std::ostream& os, const Module& m) {
     return os;
 }
 
+inline std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string, Module>& modules) {
+    os << "{\n";
+    size_t count = 0;
+    for (const auto& [key, value] : modules) {
+        os << "  \"" << key << "\": " << value;
+        if (++count < modules.size()) os << ",";
+        os << "\n";
+    }
+    os << "}";
+    return os;
+}

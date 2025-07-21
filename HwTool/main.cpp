@@ -14,7 +14,7 @@ using namespace tinyxml2;
 #include "hardware/HardwareBuilder.h"
 #include "hardware/ModuleXmlExporter.h"
 #include "hardware/hwUtils.h"
-#include "hardware/types.h"
+#include "types.h"
 
 void printElement(const tinyxml2::XMLElement* element, int indent = 0) {
     if (!element)

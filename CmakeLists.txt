@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(hwConfig)
+project(HwTool)
 
 # Set C++23 standard
 set(CMAKE_CXX_STANDARD 23)
@@ -7,30 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(External)
-set(SOURCES
-    src/main.cpp
-    src/hardware/ConnectionAnalyzer.cpp
-    src/hardware/HardwareBuilder.cpp
-    src/hardware/ModuleXmlExporter.cpp
-
-)
-add_executable(hwConfig ${SOURCES})
-
-target_link_libraries(hwConfig PRIVATE 
-    tinyxml2::tinyxml2
-)
-
-target_include_directories(hwConfig PRIVATE 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-   ${CMAKE_CURRENT_SOURCE_DIR}/External/magic_enum/include
-
-)
+add_subdirectory(HwTool)
+add_subdirectory(example)
 
 if(MSVC)
-    target_compile_options(hwConfig PRIVATE /std:c++23)
+    target_compile_options(HwTool PRIVATE /std:c++23)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(hwConfig PRIVATE -std=c++23)
+    target_compile_options(HwTool PRIVATE -std=c++23)
 endif()
 
 

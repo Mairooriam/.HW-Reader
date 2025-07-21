@@ -2,7 +2,7 @@
 #include <tinyxml2.h>
 #include <unordered_map>
 #include <string>
-#include "hardware/types.h"
+#include "types.h"
 
 
 class ModuleXmlExporter {

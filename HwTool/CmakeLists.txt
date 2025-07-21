@@ -1,0 +1,32 @@
+set(SOURCES
+    main.cpp
+    src/hardware/ConnectionAnalyzer.cpp
+    src/hardware/HardwareBuilder.cpp
+    src/hardware/ModuleXmlExporter.cpp
+    src/hardware/HwTool.cpp
+    src/hardware/ModuleXmlImporter.cpp
+
+)
+set(EXTERNAL_INCLUDES
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+   ${CMAKE_SOURCE_DIR}/External/magic_enum/include
+)
+
+add_library(hwtoollib
+    ${SOURCES}
+)
+
+target_include_directories(hwtoollib PUBLIC
+    ${EXTERNAL_INCLUDES}
+)
+
+target_link_libraries(hwtoollib PUBLIC tinyxml2::tinyxml2)
+
+
+# testing main.cpp
+add_executable(HwTool main.cpp)
+
+target_link_libraries(HwTool PRIVATE 
+    hwtoollib
+)
