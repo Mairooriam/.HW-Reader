@@ -5,6 +5,7 @@ set(SOURCES
     src/hardware/ModuleXmlExporter.cpp
     src/hardware/HwTool.cpp
     src/hardware/ModuleXmlImporter.cpp
+    src/hardware/ModuleMermaidExporter.cpp
 
 )
 set(EXTERNAL_INCLUDES

@@ -177,7 +177,8 @@ std::string toMermaid(const std::unordered_map<std::string, Module>& modules) {
     oss << "```mermaid\n";
     oss << "graph TD\n";
 
-    // Subgraph for all X20BM11 modules
+    // Subgraph for all X20BM11 modules and BB52
+    //TODO: make more dynamic to maybe config? which has all "base" models?
     oss << "    subgraph BM11s [\"Base Modules\"]\n";
     for (const auto& [name, module] : modules) {
         if (name.find("X20BM11") == 0 || name.find("X20BB52") == 0) {

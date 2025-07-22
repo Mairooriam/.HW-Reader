@@ -4,10 +4,28 @@
 
 
 #include "ModuleXmlExporter.h"
+#include "ModuleMermaidExporter.h"
 #include "ModuleXmlImporter.h"
 #include <iostream>
-#include "moduleUtils.h"
 namespace HwTool {
+    void Hw::resolveLinking(std::unordered_map<std::string, Module>& modules) {
+            for (auto& [name, module] : modules) {
+                for (auto& con : module.connections) {
+                    if (!con.targetModuleName.empty()) {
+                        auto it = modules.find(con.targetModuleName);
+                        if (it != modules.end()) {
+                            con.targetModule = &it->second;
+                        } else {
+                            std::cerr << "Warning: Target module '" << con.targetModuleName
+                                    << "' not found for connection in module '" << name << "'\n";
+                            con.targetModule = nullptr;
+                        }
+                    }
+                }
+            }
+        }       
+
+
     Hw::Hw() {}
 
     Hw::~Hw() {}
@@ -20,18 +38,16 @@ namespace HwTool {
         printf("importing HW\n");
 
         ModuleXmlImporter importer(path);
-        std::unordered_map<std::string, Module> modules_debug;
         if (importer.valid())
         {
             importer.mapModules();
-            modules_debug = importer.getModules();
+            m_modules = importer.getModules();
 
         }else{
             importer.printErrors();
         }
-        // TODO: better place for resolve linking since its used in many places
-        resolveLinking(modules_debug);
-        std::cout << modules_debug << "\n";
+        resolveLinking(m_modules);
+        //TODO: status printing if it was succesfull etc.
     }
 
     bool Hw::addCard(const std::string& name, cardType type, const std::string& targetName) {
@@ -47,6 +63,8 @@ namespace HwTool {
 
     void Hw::exportMermaid(const std::filesystem::path& path) {
         printf("Exporting to mermaid\n");
+        ModuleMermaidExporter exporter(path);
+        exporter.serialize(m_modules);
     }
 
     void Hw::render() {

@@ -9,6 +9,7 @@ namespace HwTool
     {
     private:
         std::unordered_map<std::string, Module> m_modules;
+        void resolveLinking(std::unordered_map<std::string, Module>& modules);
     public:
         Hw(/* args */);
         ~Hw();
