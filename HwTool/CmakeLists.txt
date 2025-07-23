@@ -4,6 +4,7 @@ set(SOURCES
     src/hardware/HardwareBuilder.cpp
     src/hardware/ModuleXmlExporter.cpp
     src/hardware/HwTool.cpp
+    src/hardware/hwUtils.cpp
     src/hardware/ModuleXmlImporter.cpp
     src/hardware/ModuleMermaidExporter.cpp
 

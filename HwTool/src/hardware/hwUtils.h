@@ -1,7 +1,10 @@
+#pragma once
 #include <string>
 #include <set>
+#include <unordered_map>
+#include "types.h"
 
-std::string nextSuffix(std::string suffix) {
+inline std::string nextSuffix(std::string suffix) {
         int i = suffix.size() - 1;
         while (i >= 0 && suffix[i] == 'z') {
             suffix[i] = 'a';
@@ -32,3 +35,9 @@ std::string incrementStr(const std::string& str, const StringContainer& currentS
         suffix = nextSuffix(suffix);
     }
 }
+
+
+std::string getCardBase(const std::string& target, const std::unordered_map<std::string, Module>& modules);
+std::string getCardSource(const std::string& target, const std::unordered_map<std::string, Module>& modules);
+std::string ModuleWithConnectionTarget(const std::string& target, const std::unordered_map<std::string, Module>& moduels);
+//std::set<std::string> getAllBases(const std::unordered_map<std::string, Module>& modules);
