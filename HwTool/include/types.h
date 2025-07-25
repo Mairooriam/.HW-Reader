@@ -97,6 +97,13 @@ struct Module{
           connections(std::move(conns)), parameters(std::move(params)), group(std::move(g)) {}
 };
 
+struct ModulePack {
+    Module card, base, tb;
+    bool empty() const {
+        return card.name.empty() && base.name.empty() && tb.name.empty();
+    }
+};
+
 inline std::ostream& operator<<(std::ostream& os, const Connection& c) {
     os << "Connection(connector=" << "[" << static_cast<int>(c.connector) << "]:" << magic_enum::enum_name(c.connector)
        << ", targetModule=" << (c.targetModule ? c.targetModule->name : "nullptr")

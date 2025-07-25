@@ -9,6 +9,8 @@
 #include "HardwareBuilder.h"
 #include "hwUtils.h"
 #include <iostream>
+
+#include <ranges>
 namespace HwTool {
     //TODO: make uses m_modules instead of supplying source.
     void Hw::resolveLinking(std::unordered_map<std::string, Module>& modules) {
@@ -53,49 +55,49 @@ namespace HwTool {
         //TODO: status printing if it was succesfull etc.
     }
 
-    bool Hw::addCard(const std::string& name, cardType type, const std::string& targetName) {
-        printf("adding card\n");
-        HardwareBuilder hwb;
-        if(! m_modules.contains(targetName))
-            return false; // error card doesnt exist in modules
-        
-        //TODO: currently ^^^ checks for card. so does the getCardBase. reduntant maybe?
-        //TODO: instead of std:String just return Module*`?HJ
-        std::string targetBase = getCardBase(targetName, m_modules);
-        
-        if (targetBase.empty())
-        {
-            return false;
-        }
-        
-        //TODO: for now just free function. later cache into hwTool during import as member val
-        // ->> update it on each import and add card etc.
-        //auto bases = getAllBases(m_modules); // might be actually useless. can just check against whole M_modules
-        // might still be good if big HW. to cache only bases
+    void Hw::LinkToTarget(const std::string& targetModule) {
+        assert(!m_addCardBuffer.empty() && "You must call createCard() before calling LinkToTarget()");
+        auto tSource = getCardSource(targetModule, m_modules);
+        //TODO: bad could cause crash. make validation somewhere so cannot
+        m_addCardBuffer.base.connections[0].targetModuleName = targetModule;
 
-        //std::set<std::string> afs;
-        std::string nextX20BM11 = incrementStr("X20BM11", m_modules);
 
-        //TODO:: just barely works. gotta make more dynamic etc.
-        auto tSource = getCardSource(targetName, m_modules);
+        m_modules[tSource].connections[0].targetModuleName = m_addCardBuffer.base.name;
+        m_modules[m_addCardBuffer.base.name] = m_addCardBuffer.base;
+        m_modules[m_addCardBuffer.tb.name] = m_addCardBuffer.tb;
+        m_modules[m_addCardBuffer.card.name] = m_addCardBuffer.card;
 
-        Module newBM11 = hwb.X20BM11(nextX20BM11, "1.1.0.0", nullptr, targetBase);
-        Module newTB12 = hwb.X20TB12(incrementStr("X20TB12", m_modules));
-        Module newIO = hwb.IOCARD2(name, cardType::X20AI4622, newTB12.name, newBM11.name);
-        m_modules[newBM11.name] = newBM11;
-        m_modules[newTB12.name] = newTB12;
-        m_modules[newIO.name] = newIO;
-
-        //TODO: just barely works gotta make more dynamic
-        //TODO: test with invalid inputs etc.
-        m_modules[tSource].connections[0].targetModuleName = newBM11.name;
-        
         resolveLinking(m_modules);
-
-        return true;
     }
 
+    void Hw::createCard(const std::string& name, cardType type) {
+        HardwareBuilder hwb;
+        auto keys = m_modules | std::views::keys;
+        auto currentModules = std::set<std::string>(keys.begin(), keys.end());
+        m_addCardBuffer = hwb.createCard(name, type, currentModules);
+    }
+
+    std::vector<std::string> Hw::getAvailableCards() {
+        assert(!m_addCardBuffer.empty() && "You must call createCard() before calling getAvailableCards()");
+        std::vector<std::string> res;
+        
+        auto connectors = getModuleConnectors(m_addCardBuffer.card);
+        if (connectors.contains(ConnectorType::SL))
+        {
+            for (const auto& [name, module] : m_modules) {
+                for (const auto& con : module.connections) {
+                    if (con.connector == ConnectorType::SL) {
+                        res.push_back(name);
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+
     void Hw::exportHW(const std::filesystem::path& path) {
+        
         printf("Exporting HW\n");
         ModuleXmlExporter exporter;
         exporter.serialize(m_modules, path.string());
@@ -107,6 +109,7 @@ namespace HwTool {
         exporter.serialize(m_modules);
     }
 
+    // Make more proper render API 
     void Hw::render() {
         printf("rendering\n");
         //         XMLPrinter printer;
@@ -132,11 +135,11 @@ namespace HwTool {
             std::cin >> typeStr;
             std::cout << "Enter target card name to link: ";
             std::cin >> targetName;
-            if (addCard(newName, magic_enum::enum_cast<cardType>(typeStr).value_or(cardType::X20DO9322), targetName)) {
-                std::cout << "Card added and linked.\n";
-            } else {
-                std::cout << "Failed to add card.\n";
-            }
+            // if (addCard(newName, magic_enum::enum_cast<cardType>(typeStr).value_or(cardType::X20DO9322), targetName)) {
+            //     std::cout << "Card added and linked.\n";
+            // } else {
+            //     std::cout << "Failed to add card.\n";
+            // }
         } else if (command == "export") {
             exportHW("interactive.hw");
             exportMermaid("interactive.md");

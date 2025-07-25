@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <set>
 class HardwareBuilder
 {
 private:
@@ -12,8 +13,9 @@ Module X20BM11(const std::string& name, const std::string& version = "1.1.0.0",
     Module X20TB12(const std::string& name);
     
     // version will cause problems in Br
-    std::vector<Module> IOCARD(const std::string& name, cardType type, const std::string& targetTB12, const std::string& version = "1.0.0.0");
+    ModulePack IOCARD(const std::string& name, cardType type, const std::string& targetTB12, const std::string& version = "1.0.0.0");
     Module IOCARD2(const std::string& name, cardType type, const std::string& targetTB12, const std::string& targetBM11, const std::string& version = "1.0.0.0");
+    ModulePack createCard(const std::string& name, cardType type, const std::set<std::string>& currentModules);
 };
 
 

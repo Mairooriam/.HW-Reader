@@ -1,5 +1,5 @@
 #include "HardwareBuilder.h"
-
+#include "hwUtils.h"
 HardwareBuilder::HardwareBuilder()
 {
 }
@@ -35,21 +35,24 @@ Module HardwareBuilder::IOCARD2(const std::string &name, cardType type, const st
     return m;
 }
 
-std::vector<Module> HardwareBuilder::IOCARD(const std::string &name, cardType type, const std::string& targetName, const std::string &version)
+
+
+ModulePack HardwareBuilder::IOCARD(const std::string &name, cardType type, const std::string& targetName, const std::string &version)
 {
-    std::vector<Module> res;
-    res.reserve(3);
-    res.emplace_back(X20BM11("X20BM11_" + name, "1.1.0.0", nullptr, targetName));
-    Module* base = &res.back();
-    res.emplace_back(X20TB12("X20TB12_" + name));
-    Module* tb = &res.back();
+    Module base = X20BM11("X20BM11_" + name, "1.1.0.0", nullptr, targetName);
+    Module tb = X20TB12("X20TB12_" + name);
 
+    Connection con1(ConnectorType::SS1, ConnectorType::SS, &tb, tb.name);
+    Connection con2(ConnectorType::SL, ConnectorType::SL1, &base, base.name);
 
-    Connection con1(ConnectorType::SS1, ConnectorType::SS, tb, tb->name);
-    Connection con2(ConnectorType::SL, ConnectorType::SL1, base, base->name);
+    Module card(name, type, version, std::vector<Connection>{con1, con2});
 
-    // Create the main IO card module
-    res.emplace_back(name, type, version, std::vector<Connection>{con1, con2});
-
-    return res;
+    return ModulePack{card, base, tb};
+}
+ModulePack HardwareBuilder::createCard(const std::string& name, cardType type, const std::set<std::string>& currentModules){
+    std::string nextX20BM11 = incrementStr("X20BM11", currentModules);
+    Module newBM11 = X20BM11(nextX20BM11, "1.1.0.0", nullptr, std::string());
+    Module newTB12 = X20TB12(incrementStr("X20TB12", currentModules));
+    Module newIO = IOCARD2(name, cardType::X20AI4622, newTB12.name, newBM11.name);
+    return ModulePack{newIO, newBM11, newTB12};
 }

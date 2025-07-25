@@ -44,6 +44,16 @@ std::string ModuleWithConnectionTarget(const std::string& target, const std::uno
     return std::string();
 }
 
+std::set<ConnectorType> getModuleConnectors(const Module& module) {
+    std::set<ConnectorType> res;
+    for (auto &&con : module.connections)
+    {
+        res.insert(con.connector);
+        res.insert(con.targetConnector);
+    }
+    return res;
+}
+
 // std::set<std::string> getAllBases(const std::unordered_map<std::string, Module>& modules) {
 
 //     return std::set<std::string>();

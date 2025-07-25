@@ -40,4 +40,5 @@ std::string incrementStr(const std::string& str, const StringContainer& currentS
 std::string getCardBase(const std::string& target, const std::unordered_map<std::string, Module>& modules);
 std::string getCardSource(const std::string& target, const std::unordered_map<std::string, Module>& modules);
 std::string ModuleWithConnectionTarget(const std::string& target, const std::unordered_map<std::string, Module>& moduels);
+std::set<ConnectorType> getModuleConnectors(const Module& module);
 //std::set<std::string> getAllBases(const std::unordered_map<std::string, Module>& modules);

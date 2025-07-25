@@ -15,12 +15,20 @@ int main(int argc, char const *argv[])
     printf("Export complete\n");
 
     printf("adding card\n");
-    hw.addCard("AF100",cardType::X20AI4632, "AF400");
+
+
     
+    hw.createCard("AF111", cardType::X20DO9322);
+    auto validCards = hw.getAvailableCards();
+    int selected = 4;
+    hw.LinkToTarget(validCards[selected]);
+
+
+
     hw.exportHW("afterAdding.hw");
     hw.exportMermaid("afterAddingWithlINKING.md");
 
-    hw.render();
+    //hw.render();
     
 
     return 0;
