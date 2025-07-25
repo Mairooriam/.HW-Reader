@@ -3,15 +3,14 @@
 #include "Types.h"
 #include "ICommand.h"
 
-namespace HwTool{
 
-    class CreateCardCommand : public ICommand {
-        std::string name;
-        cardType type;
+namespace HwTool {
+    class LinkToTargetCommand : public ICommand {
+        std::string m_targetModule;
+        std::string m_newCard;
     public:
-        CreateCardCommand(const std::string& n, cardType t) : name(n), type(t) {}
-        void execute() override {  }
-        void undo() override { /* implement undo logic */ }
+        LinkToTargetCommand(const std::string& target);
+        void execute(Hw& hw) override;
+        void undo(Hw& hw) override;
     };
-
 }

@@ -30,7 +30,62 @@ namespace HwTool {
         }
     }
 
-    Hw::Hw() {}
+    std::string Hw::getCardBase(const std::string& target,
+                                const std::unordered_map<std::string, Module>& modules)
+    {
+        // TODO: add testing? just got up and runnig
+        // Test some edge cases
+        
+        auto it = modules.find(target);
+        if (it == modules.end())
+        {
+            return std::string();
+        }else{
+            for (auto &&con : it->second.connections)
+            {
+                if (con.connector == ConnectorType::SL)
+                {
+                    return con.targetModuleName;
+                }
+                
+            }
+        }
+        return std::string();
+    }
+
+    std::string Hw::getCardSource(const std::string& target,
+                                  const std::unordered_map<std::string, Module>& modules)  {
+    
+        auto targetCardBase = getCardBase(target, modules);
+        auto targetSource = ModuleWithConnectionTarget(targetCardBase, modules);
+        return targetSource;
+    }
+
+    std::string Hw::ModuleWithConnectionTarget(
+        const std::string& target, const std::unordered_map<std::string, Module>& modules) {
+        //TODO: add cached target info. this is bad
+        for (const auto& [name, module] : modules) {
+            for (const auto& con : module.connections) {
+                if (con.targetModuleName == target && con.connector == ConnectorType::X2X1) {
+                    // Found a module with a connection to 'target'
+                    return name;
+                }
+            }
+        }
+        return std::string();
+    }
+
+    std::set<ConnectorType> Hw::getModuleConnectors(const Module& module) {
+            std::set<ConnectorType> res;
+            for (auto &&con : module.connections)
+            {
+                res.insert(con.connector);
+                res.insert(con.targetConnector);
+            }
+            return res;
+    }
+
+    Hw::Hw() : m_cmdManager(*this) {}
 
     Hw::~Hw() {}
 
@@ -53,7 +108,7 @@ namespace HwTool {
         // TODO: status printing if it was succesfull etc.
     }
 
-    void Hw::LinkToTarget(const std::string& targetModule) {
+    void Hw::LinkToTargetInternal(const std::string& targetModule) {
         assert(!m_addCardBuffer.empty() &&
                "You must call createCard() before calling LinkToTarget()");
         auto tSource = getCardSource(targetModule, m_modules);
@@ -80,6 +135,14 @@ namespace HwTool {
         m_addCardBuffer = hwb.createCard(name, type, currentModules);
     }
 
+    void Hw::deleteCard(const std::string& name) {
+
+    }
+
+    void Hw::linkToTarget(const std::string& targetModule) {
+        m_cmdManager.execute(std::make_unique<LinkToTargetCommand>(targetModule));
+    }
+
     std::vector<std::string> Hw::getAvailableCards() {
         assert(!m_addCardBuffer.empty() &&
                "You must call createCard() before calling getAvailableCards()");
@@ -97,6 +160,8 @@ namespace HwTool {
         }
         return res;
     }
+
+
 
     void Hw::exportHW(const std::filesystem::path& path) {
         printf("Exporting HW\n");

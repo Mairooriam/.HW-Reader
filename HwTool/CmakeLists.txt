@@ -2,9 +2,10 @@ set(SOURCES
     src/HardwareBuilder.cpp
     src/ModuleXmlExporter.cpp
     src/HwTool.cpp
-    src/hwUtils.cpp
     src/ModuleXmlImporter.cpp
     src/ModuleMermaidExporter.cpp
+    src/commands/Commands.cpp
+    src/Renderer/ConsoleRenderer.cpp
 
 )
 set(EXTERNAL_INCLUDES
