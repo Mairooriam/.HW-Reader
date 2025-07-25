@@ -1,6 +1,6 @@
 #pragma once
 #include <unordered_map>
-#include "types.h"
+#include "Types.h"
 #include <tinyxml2.h>
 #include <filesystem>
 #include <vector>

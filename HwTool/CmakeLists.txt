@@ -1,12 +1,10 @@
 set(SOURCES
-    main.cpp
-    src/hardware/ConnectionAnalyzer.cpp
-    src/hardware/HardwareBuilder.cpp
-    src/hardware/ModuleXmlExporter.cpp
-    src/hardware/HwTool.cpp
-    src/hardware/hwUtils.cpp
-    src/hardware/ModuleXmlImporter.cpp
-    src/hardware/ModuleMermaidExporter.cpp
+    src/HardwareBuilder.cpp
+    src/ModuleXmlExporter.cpp
+    src/HwTool.cpp
+    src/hwUtils.cpp
+    src/ModuleXmlImporter.cpp
+    src/ModuleMermaidExporter.cpp
 
 )
 set(EXTERNAL_INCLUDES
@@ -24,11 +22,3 @@ target_include_directories(hwtoollib PUBLIC
 )
 
 target_link_libraries(hwtoollib PUBLIC tinyxml2::tinyxml2)
-
-
-# testing main.cpp
-add_executable(HwTool main.cpp)
-
-target_link_libraries(HwTool PRIVATE 
-    hwtoollib
-)

@@ -17,16 +17,16 @@ int main(int argc, char const *argv[])
     printf("adding card\n");
 
 
-    
     hw.createCard("AF111", cardType::X20DO9322);
     auto validCards = hw.getAvailableCards();
-    int selected = 4;
-    hw.LinkToTarget(validCards[selected]);
-
-
-
-    hw.exportHW("afterAdding.hw");
-    hw.exportMermaid("afterAddingWithlINKING.md");
+    for (const auto& card : validCards) {
+        hw.importHW("hardware.hw");
+        std::cout << "Linking to: " << card << std::endl;
+        hw.LinkToTarget(card);
+        // Optionally, export after each link to see the result
+        hw.exportHW("after_linking_" + card + ".hw");
+        hw.exportMermaid("after_linking_" + card + ".md");
+    }
 
     //hw.render();
     

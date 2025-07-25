@@ -2,7 +2,7 @@
 #include <string>
 #include <set>
 #include <unordered_map>
-#include "types.h"
+#include "Types.h"
 
 inline std::string nextSuffix(std::string suffix) {
         int i = suffix.size() - 1;
