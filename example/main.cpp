@@ -6,6 +6,7 @@ int main(int argc, char const *argv[])
     HwTool::Hw hw;
     hw.importHW("hardware.hw");
     printf("Import done\n");
+    hw.deleteCard("AF300");
     printf("Exporting\n");
     hw.exportHW("testing.hw");
     printf("export done\n");
@@ -15,8 +16,7 @@ int main(int argc, char const *argv[])
     printf("Export complete\n");
 
     printf("adding card\n");
-
-
+    
     hw.createCard("AF111", cardType::X20DO9322);
     auto validCards = hw.getAvailableCards();
     for (const auto& card : validCards) {

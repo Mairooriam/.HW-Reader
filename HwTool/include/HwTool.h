@@ -13,8 +13,11 @@ namespace HwTool {
     class Hw {
     private:
         std::unordered_map<std::string, Module> m_modules;
+        std::unordered_map<std::string, Module> getModules() const {
+            return m_modules;
+        };
         ModulePack m_addCardBuffer;
-        void resolveLinking(std::unordered_map<std::string, Module>& modules);
+        void resolveLinking();
         CommandManager m_cmdManager;
 
         void LinkToTargetInternal(const std::string& targetModule);
@@ -22,12 +25,12 @@ namespace HwTool {
         // void createCardInternal(const std::string& name, cardType type);
 
         // UTILS
-        std::string getCardBase(const std::string& target,
-                                const std::unordered_map<std::string, Module>& modules);
-        std::string getCardSource(const std::string& target,
-                                  const std::unordered_map<std::string, Module>& modules);
-        std::string ModuleWithConnectionTarget(
-            const std::string& target, const std::unordered_map<std::string, Module>& modules);
+        std::string getCardBase(const std::string& card);
+        std::string getCardSource(const std::string& card);
+        std::string getCardTarget(const std::string& card);
+        std::vector<std::string> getModulesToDelete(const std::string& card);
+        std::string getModuleWithConnectionTarget(const std::string& target);
+        std::string getModuleWithConnectionSource(const std::string& module);
         std::set<ConnectorType> getModuleConnectors(const Module& module);
 
     public:

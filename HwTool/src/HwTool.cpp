@@ -13,12 +13,12 @@
 
 namespace HwTool {
     // TODO: make uses m_modules instead of supplying source.
-    void Hw::resolveLinking(std::unordered_map<std::string, Module>& modules) {
-        for (auto& [name, module] : modules) {
+    void Hw::resolveLinking() {
+        for (auto& [name, module] : m_modules) {
             for (auto& con : module.connections) {
                 if (!con.targetModuleName.empty()) {
-                    auto it = modules.find(con.targetModuleName);
-                    if (it != modules.end()) {
+                    auto it = m_modules.find(con.targetModuleName);
+                    if (it != m_modules.end()) {
                         con.targetModule = &it->second;
                     } else {
                         std::cerr << "Warning: Target module '" << con.targetModuleName
@@ -30,14 +30,13 @@ namespace HwTool {
         }
     }
 
-    std::string Hw::getCardBase(const std::string& target,
-                                const std::unordered_map<std::string, Module>& modules)
+    std::string Hw::getCardBase(const std::string& target)
     {
         // TODO: add testing? just got up and runnig
         // Test some edge cases
         
-        auto it = modules.find(target);
-        if (it == modules.end())
+        auto it = m_modules.find(target);
+        if (it == m_modules.end())
         {
             return std::string();
         }else{
@@ -53,24 +52,42 @@ namespace HwTool {
         return std::string();
     }
 
-    std::string Hw::getCardSource(const std::string& target,
-                                  const std::unordered_map<std::string, Module>& modules)  {
-    
-        auto targetCardBase = getCardBase(target, modules);
-        auto targetSource = ModuleWithConnectionTarget(targetCardBase, modules);
+    std::string Hw::getCardSource(const std::string& target)  {
+        auto targetCardBase = getCardBase(target);
+        auto targetSource = getModuleWithConnectionSource(targetCardBase);
         return targetSource;
     }
 
-    std::string Hw::ModuleWithConnectionTarget(
-        const std::string& target, const std::unordered_map<std::string, Module>& modules) {
+    std::string Hw::getCardTarget(const std::string& target)  {
+        auto targetCardBase = getCardBase(target);
+        auto targetTarget = getModuleWithConnectionTarget(targetCardBase);
+        return targetTarget;
+    }
+
+    std::string Hw::getModuleWithConnectionSource(
+        const std::string& target) {
+
         //TODO: add cached target info. this is bad
-        for (const auto& [name, module] : modules) {
+        for (const auto& [name, module] : this->getModules()) {
             for (const auto& con : module.connections) {
                 if (con.targetModuleName == target && con.connector == ConnectorType::X2X1) {
                     // Found a module with a connection to 'target'
                     return name;
                 }
             }
+        }
+        return std::string();
+    }
+
+    std::string Hw::getModuleWithConnectionTarget(const std::string& module) {
+        auto modules = getModules();
+        for (auto &&con : modules[module].connections)
+        {
+            if (con.connector == ConnectorType::X2X1)
+            {
+                return con.targetModuleName;
+            }
+            
         }
         return std::string();
     }
@@ -104,15 +121,15 @@ namespace HwTool {
         } else {
             importer.printErrors();
         }
-        resolveLinking(m_modules);
+        resolveLinking();
         // TODO: status printing if it was succesfull etc.
     }
 
     void Hw::LinkToTargetInternal(const std::string& targetModule) {
         assert(!m_addCardBuffer.empty() &&
                "You must call createCard() before calling LinkToTarget()");
-        auto tSource = getCardSource(targetModule, m_modules);
-        auto TargetModuleBase = getCardBase(targetModule, m_modules);
+        auto tSource = getCardSource(targetModule);
+        auto TargetModuleBase = getCardBase(targetModule);
         // TODO: bad could cause crash. make validation somewhere so cannot
         m_addCardBuffer.base.connections[0].targetModuleName = TargetModuleBase;
 
@@ -125,7 +142,7 @@ namespace HwTool {
         m_modules[m_addCardBuffer.tb.name] = m_addCardBuffer.tb;
         m_modules[m_addCardBuffer.card.name] = m_addCardBuffer.card;
 
-        resolveLinking(m_modules);
+        resolveLinking();
     }
 
     void Hw::createCard(const std::string& name, cardType type) {
@@ -135,8 +152,40 @@ namespace HwTool {
         m_addCardBuffer = hwb.createCard(name, type, currentModules);
     }
 
-    void Hw::deleteCard(const std::string& name) {
 
+    void Hw::deleteCard(const std::string& name) {
+        //TODO: these should be reworked. easy to make bugs with the methods
+        auto modules = this->getModules();
+
+        std::vector<std::string> modulesToDelete;
+        for (auto &&con : modules[name].connections)
+        {
+            if (con.connector == ConnectorType::SS1 || con.connector == ConnectorType::SL)
+            {
+                modulesToDelete.push_back(con.targetModuleName);
+            }
+            
+        }
+        
+
+        auto deleteCardSource = getCardSource(name);
+        auto deleteCardTarget = getCardTarget(name);
+        
+        for (auto &&module : modulesToDelete)
+        {
+            m_modules.erase(module);   
+        }
+        m_modules.erase(name);
+        
+        for (auto &&con : m_modules[deleteCardSource].connections)
+        {
+            if (con.connector == ConnectorType::X2X1)
+            {
+                con.targetModuleName = deleteCardTarget;
+            }
+        }
+        
+        this->resolveLinking();
     }
 
     void Hw::linkToTarget(const std::string& targetModule) {
