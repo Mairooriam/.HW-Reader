@@ -63,7 +63,7 @@ namespace HwTool {
         // not implemented
         void render(IRenderer& renderer) const;
         std::unordered_map<std::string, Module> importCSV(const std::filesystem::path& path, const std::string& version = "");
-        void combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& root, const std::string& target);
+        void combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& target);
 
         void undo();
         void redo();

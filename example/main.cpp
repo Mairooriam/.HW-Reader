@@ -27,14 +27,15 @@ int main(int argc, char const *argv[])
     hw.undo();
     hw.exportMermaid("testingUndo2.md");
 
-    hw.importHW("hardware.hw");
+    hw.importHW("hardware2.hw");
     auto validcard = hw.getAvailableCards();
     auto importm = hw.importCSV("HW_version-1.0.0.csv");
-    auto rootBase = hw.getRootBase(importm);
 
 
-    hw.combineToExisting(importm, rootBase ,validcard[2]);
+
+    hw.combineToExisting(importm, validcard[4]);
     hw.exportMermaid("HW_version-1.0.0.md");
+    hw.exportHW("Hw_version1.0.0.0.hw");
     //hw.render();
     
 

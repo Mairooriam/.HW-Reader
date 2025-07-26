@@ -250,9 +250,10 @@ namespace HwTool {
         return std::unordered_map<std::string, Module>();
     }
 
-    void Hw::combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& root, const std::string& target) {
+    void Hw::combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& target) {
+        auto rootBase = getRootBase(modules);
         auto targetBase = getCardBase(target);
-        modules[root].connections[0].targetModuleName = targetBase;
+        modules[rootBase].connections[0].targetModuleName = targetBase;
         for (const auto& [name, module] : modules) {
             m_modules[name] = module;
         }
