@@ -25,3 +25,5 @@ target_include_directories(hwtoollib PUBLIC
 )
 
 target_link_libraries(hwtoollib PUBLIC tinyxml2::tinyxml2)
+
+
