@@ -1,9 +1,10 @@
 set(SOURCES
-    src/HardwareBuilder.cpp
-    src/ModuleXmlExporter.cpp
     src/HwTool.cpp
-    src/ModuleXmlImporter.cpp
-    src/ModuleMermaidExporter.cpp
+    src/HardwareBuilder.cpp
+    src/DataAccess/ModuleXmlExporter.cpp
+    src/DataAccess/ModuleXmlImporter.cpp
+    src/DataAccess/ModuleMermaidExporter.cpp
+    src/DataAccess/ModuleCsvImporter.cpp
     src/commands/Commands.cpp
     src/Renderer/ConsoleRenderer.cpp
 
@@ -12,6 +13,7 @@ set(EXTERNAL_INCLUDES
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src
    ${CMAKE_SOURCE_DIR}/External/magic_enum/include
+   ${CMAKE_SOURCE_DIR}/External/fast-cpp-csv-parser/include
 )
 
 add_library(hwtoollib

@@ -5,19 +5,13 @@ int main(int argc, char const *argv[])
     std::cout << "Hello World" << "\n";
     HwTool::Hw hw;
     hw.importHW("hardware.hw");
-    printf("Import done\n");
-    hw.deleteCard("AF300");
-    printf("Exporting\n");
     hw.exportHW("testing.hw");
-    printf("export done\n");
-
-    printf("exporting to mermaid.md\n");
     hw.exportMermaid("mermaid.md");
-    printf("Export complete\n");
+
 
     printf("adding card\n");
-    
     hw.createCard("AF111", cardType::X20DO9322);
+    
     auto validCards = hw.getAvailableCards();
     for (const auto& card : validCards) {
         hw.importHW("hardware.hw");
@@ -27,7 +21,20 @@ int main(int argc, char const *argv[])
         hw.exportHW("after_linking_" + card + ".hw");
         hw.exportMermaid("after_linking_" + card + ".md");
     }
+    hw.importHW("hardware.hw");
+    hw.createCard("AF111", cardType::X20DO9322);
+    hw.linkToTarget("AF300");
+    hw.undo();
+    hw.exportMermaid("testingUndo2.md");
 
+    hw.importHW("hardware.hw");
+    auto validcard = hw.getAvailableCards();
+    auto importm = hw.importCSV("HW_version-1.0.0.csv");
+    auto rootBase = hw.getRootBase(importm);
+
+
+    hw.combineToExisting(importm, rootBase ,validcard[2]);
+    hw.exportMermaid("HW_version-1.0.0.md");
     //hw.render();
     
 

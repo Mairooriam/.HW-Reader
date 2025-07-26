@@ -13,4 +13,13 @@ namespace HwTool {
         void execute(Hw& hw) override;
         void undo(Hw& hw) override;
     };
+
+    class deleteCardCommand : public ICommand {
+        std::string m_targetModule;
+        std::string m_newCard;
+    public:
+        deleteCardCommand(const std::string& target);
+        void execute(Hw& hw) override;
+        void undo(Hw& hw) override;
+    };
 }

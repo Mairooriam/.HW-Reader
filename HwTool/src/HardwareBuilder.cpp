@@ -1,5 +1,5 @@
 #include "HardwareBuilder.h"
-#include "hwUtils.h"
+
 HardwareBuilder::HardwareBuilder()
 {
 }
@@ -49,10 +49,5 @@ ModulePack HardwareBuilder::IOCARD(const std::string &name, cardType type, const
 
     return ModulePack{card, base, tb};
 }
-ModulePack HardwareBuilder::createCard(const std::string& name, cardType type, const std::set<std::string>& currentModules){
-    std::string nextX20BM11 = incrementStr("X20BM11", currentModules);
-    Module newBM11 = X20BM11(nextX20BM11, "1.1.0.0", nullptr, std::string());
-    Module newTB12 = X20TB12(incrementStr("X20TB12", currentModules));
-    Module newIO = IOCARD2(name, cardType::X20AI4622, newTB12.name, newBM11.name);
-    return ModulePack{newIO, newBM11, newTB12};
-}
+
+

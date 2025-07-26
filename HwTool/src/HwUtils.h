@@ -18,10 +18,7 @@ inline std::string nextSuffix(std::string suffix) {
     return suffix;
 }
 
-template<typename T, typename Key>
-concept HasContains = requires(T t, Key k) {
-    { t.contains(k) } -> std::convertible_to<bool>;
-};
+
 
 template<typename StringContainer>
 requires HasContains<StringContainer, std::string>

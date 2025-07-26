@@ -7,6 +7,11 @@
 
 //TODO: move implementations to .cpp file for the printings or separate
 
+template<typename T, typename Key>
+concept HasContains = requires(T t, Key k) {
+    { t.contains(k) } -> std::convertible_to<bool>;
+};
+
 enum class cardType{
     ERROR = 0,
 

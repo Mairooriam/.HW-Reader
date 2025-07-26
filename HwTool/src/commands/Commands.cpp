@@ -10,6 +10,15 @@ namespace HwTool {
         hw.LinkToTargetInternal(m_targetModule);
     }
     void LinkToTargetCommand::undo(Hw& hw) {
-        //TODO: needs hw to implement removeCard.
+        hw.deleteCardInternal(m_newCard);
     }
-}
+
+    deleteCardCommand::deleteCardCommand(const std::string& target): m_targetModule(target) {}
+
+    void deleteCardCommand::execute(Hw& hw) {
+        hw.deleteCardInternal(m_targetModule);
+    }
+
+    void deleteCardCommand::undo(Hw& hw) {}
+
+}  // namespace HwTool

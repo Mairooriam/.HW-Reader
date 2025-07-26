@@ -4,12 +4,13 @@
 #include <iostream>
 #include <ranges>
 
-#include "HardwareBuilder.h"
-#include "ModuleMermaidExporter.h"
-#include "ModuleXmlExporter.h"
-#include "ModuleXmlImporter.h"
-#include "HwUtils.h"
 #include "Commands/Commands.h"
+#include "DataAccess/ModuleMermaidExporter.h"
+#include "DataAccess/ModuleXmlExporter.h"
+#include "DataAccess/ModuleXmlImporter.h"
+#include "HardwareBuilder.h"
+#include "HwUtils.h"
+
 
 namespace HwTool {
     // TODO: make uses m_modules instead of supplying source.
@@ -30,44 +31,37 @@ namespace HwTool {
         }
     }
 
-    std::string Hw::getCardBase(const std::string& target)
-    {
+    std::string Hw::getCardBase(const std::string& target) {
         // TODO: add testing? just got up and runnig
         // Test some edge cases
-        
+
         auto it = m_modules.find(target);
-        if (it == m_modules.end())
-        {
+        if (it == m_modules.end()) {
             return std::string();
-        }else{
-            for (auto &&con : it->second.connections)
-            {
-                if (con.connector == ConnectorType::SL)
-                {
+        } else {
+            for (auto&& con : it->second.connections) {
+                if (con.connector == ConnectorType::SL) {
                     return con.targetModuleName;
                 }
-                
             }
         }
         return std::string();
     }
 
-    std::string Hw::getCardSource(const std::string& target)  {
+    std::string Hw::getCardSource(const std::string& target) {
         auto targetCardBase = getCardBase(target);
         auto targetSource = getModuleWithConnectionSource(targetCardBase);
         return targetSource;
     }
 
-    std::string Hw::getCardTarget(const std::string& target)  {
+    std::string Hw::getCardTarget(const std::string& target) {
         auto targetCardBase = getCardBase(target);
         auto targetTarget = getModuleWithConnectionTarget(targetCardBase);
         return targetTarget;
     }
 
-    std::string Hw::getModuleWithConnectionSource(
-        const std::string& target) {
-
-        //TODO: add cached target info. this is bad
+    std::string Hw::getModuleWithConnectionSource(const std::string& target) {
+        // TODO: add cached target info. this is bad
         for (const auto& [name, module] : this->getModules()) {
             for (const auto& con : module.connections) {
                 if (con.targetModuleName == target && con.connector == ConnectorType::X2X1) {
@@ -81,34 +75,49 @@ namespace HwTool {
 
     std::string Hw::getModuleWithConnectionTarget(const std::string& module) {
         auto modules = getModules();
-        for (auto &&con : modules[module].connections)
-        {
-            if (con.connector == ConnectorType::X2X1)
-            {
+        for (auto&& con : modules[module].connections) {
+            if (con.connector == ConnectorType::X2X1) {
                 return con.targetModuleName;
             }
-            
         }
         return std::string();
     }
 
     std::set<ConnectorType> Hw::getModuleConnectors(const Module& module) {
-            std::set<ConnectorType> res;
-            for (auto &&con : module.connections)
-            {
-                res.insert(con.connector);
-                res.insert(con.targetConnector);
+        std::set<ConnectorType> res;
+        for (auto&& con : module.connections) {
+            res.insert(con.connector);
+            res.insert(con.targetConnector);
+        }
+        return res;
+    }
+
+    std::string Hw::getRootBase(const std::unordered_map<std::string, Module>& modules) {
+        std::vector<std::string> emptyTargets;
+        for (auto& [modName, module] : modules) {
+            for (auto& connection : module.connections) {
+                if (connection.targetModuleName.empty()) {
+                    emptyTargets.push_back(modName);
+                }
             }
-            return res;
+        }
+        
+        // TODO: hitting this is edge case that will cause bug later sorry :))
+        if (emptyTargets.size() > 1)
+        {
+            assert(("Multiple root bases found", false));
+        }
+        
+        if (emptyTargets.size() == 1)
+            return emptyTargets[0];
+
+        return std::string();
     }
 
     Hw::Hw() : m_cmdManager(*this) {}
 
     Hw::~Hw() {}
 
-    void Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
-        printf("Importing CSV\n");
-    }
 
     void Hw::importHW(const std::filesystem::path& path, const std::string& version) {
         printf("importing HW\n");
@@ -152,39 +161,32 @@ namespace HwTool {
         m_addCardBuffer = hwb.createCard(name, type, currentModules);
     }
 
-
-    void Hw::deleteCard(const std::string& name) {
-        //TODO: these should be reworked. easy to make bugs with the methods
+    void Hw::deleteCardInternal(const std::string& name) {
+        // TODO: these should be reworked. easy to make bugs with the methods
+        // TODO: test edge cases.
         auto modules = this->getModules();
 
         std::vector<std::string> modulesToDelete;
-        for (auto &&con : modules[name].connections)
-        {
-            if (con.connector == ConnectorType::SS1 || con.connector == ConnectorType::SL)
-            {
+        for (auto&& con : modules[name].connections) {
+            if (con.connector == ConnectorType::SS1 || con.connector == ConnectorType::SL) {
                 modulesToDelete.push_back(con.targetModuleName);
             }
-            
         }
-        
 
         auto deleteCardSource = getCardSource(name);
         auto deleteCardTarget = getCardTarget(name);
-        
-        for (auto &&module : modulesToDelete)
-        {
-            m_modules.erase(module);   
+
+        for (auto&& module : modulesToDelete) {
+            m_modules.erase(module);
         }
         m_modules.erase(name);
-        
-        for (auto &&con : m_modules[deleteCardSource].connections)
-        {
-            if (con.connector == ConnectorType::X2X1)
-            {
+
+        for (auto&& con : m_modules[deleteCardSource].connections) {
+            if (con.connector == ConnectorType::X2X1) {
                 con.targetModuleName = deleteCardTarget;
             }
         }
-        
+
         this->resolveLinking();
     }
 
@@ -192,6 +194,17 @@ namespace HwTool {
         m_cmdManager.execute(std::make_unique<LinkToTargetCommand>(targetModule));
     }
 
+    void Hw::undo() {
+        m_cmdManager.undo();
+    }
+
+    void Hw::redo() {
+        m_cmdManager.redo();
+    }
+
+    void Hw::deleteCard(const std::string& card) {
+        m_cmdManager.execute(std::make_unique<deleteCardCommand>(card));
+    }
     std::vector<std::string> Hw::getAvailableCards() {
         assert(!m_addCardBuffer.empty() &&
                "You must call createCard() before calling getAvailableCards()");
@@ -210,8 +223,6 @@ namespace HwTool {
         return res;
     }
 
-
-
     void Hw::exportHW(const std::filesystem::path& path) {
         printf("Exporting HW\n");
         ModuleXmlExporter exporter;
@@ -226,6 +237,27 @@ namespace HwTool {
 
     void Hw::render(IRenderer& renderer) const {
         renderer.render(m_modules);
+    }
+
+    
+    std::unordered_map<std::string, Module> Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
+        auto keys = m_modules | std::views::keys;
+        auto currentModules = std::set<std::string>(keys.begin(), keys.end());
+        ModuleCsvImporter csvImporter(path,currentModules);
+        if (csvImporter.valid())
+            return csvImporter.getModules();
+   
+        return std::unordered_map<std::string, Module>();
+    }
+
+    void Hw::combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& root, const std::string& target) {
+        auto targetBase = getCardBase(target);
+        modules[root].connections[0].targetModuleName = targetBase;
+        for (const auto& [name, module] : modules) {
+            m_modules[name] = module;
+        }
+
+        resolveLinking();
     }
 
 }  // namespace HwTool
