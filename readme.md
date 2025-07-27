@@ -1,14 +1,27 @@
 # TreeToMermaid / HwTool
 
-## Overview
+Goals were:
 
-TreeToMermaid is a tool for importing, manipulating, and exporting hardware configuration data, with a focus on visualizing module connections as Mermaid diagrams.  
+✅ Learning!
+
+✅ Library design-
+
+✅ Learn handling XML files- **For the project i used TinyXML2**
+
+✅ Import HW from CSV and combine to exsisting .hw.  **Works somewhat im very specific cases and with specific cards**
+
+❌ API that is impossible to miss use. **Currenly API is easy to miss use**
+
+❌ Rendering **Bad implementation of the library and time limits didn't allow this**
+
+❌ Tests **Didnt make tests**
+
+TreeToMermaid is a tool for importing, manipulating, and exporting hardware configuration data, with a focus on visualizing module connections as Mermaid diagrams. Project is created with Automation studio in mind. Just barely working and will have alot of unwanted behavior.
 
 
 ### Usage
 
-Importing valid [Hardware.hw](Hardware.hw) and exporting it in mermaid should look like this.
-
+Importing valid [Hardware.hw](Hardware.hw) and exporting it in mermaid should look like this. Make sure you move hardware.hw or test.csv to the working directory.
 ```cpp
 HwTool::Hw hw;
 hw.importHW("Hardware.hw")
@@ -65,6 +78,28 @@ graph TD
     X20PS9600 -- SS1 --> X20TB12
 ```
 
+### Working with imported HW
+
+
+Using getAvailableCards() returns available cards from the currently imported hardware. You must have imported hardware before using getAvailableCards().
+```cpp
+hw.importHW("hardware.hw");
+hw.createCard("testing", cardType::X20AI2622);
+std::vector<std::string> validcards = hw.getAvailableCards();
+for (size_t i = 0; i < validCards.size(); ++i) {
+    std::cout << std::format("[{:>2}] - {}\n", i, validCards[i]);
+}
+```
+
+```console
+[ 0] - AF400
+[ 1] - X20CP0484_1
+[ 2] - AFtest
+[ 3] - AF300
+[ 4] - X20AI4632
+[ 5] - X20AI4622
+```
+
 ### Importing from CSV
 
 importCSV returns csv in format that the HwTool can process it.
@@ -82,29 +117,6 @@ Location,Name,Type
 ```cpp
 auto modulesCsv = hw.importCSV("HW_version-1.0.0.csv");
 
-```
-
-
-
-### Working with imported HW
-
-
-Using getAvailableCards() returns available cards from the currently imported hardware. You must have imported hardware before using getAvailableCards().
-```cpp
-hw.importHW("hardware.hw");
-std::vector<std::string> validcards = hw.getAvailableCards();
-for (size_t i = 0; i < validCards.size(); ++i) {
-    std::cout << std::format("[{:>2}] - {}\n", i, validCards[i]);
-}
-```
-
-```console
-[ 0] - AF400
-[ 1] - X20CP0484_1
-[ 2] - AFtest
-[ 3] - AF300
-[ 4] - X20AI4632
-[ 5] - X20AI4622
 ```
 
 ### Combining existing hardware.hw with importCSV
@@ -331,12 +343,16 @@ graph TD
 ```cpp
 hw.importHW("hardware.hw");
 hw.exportMermaid("before_adding_cards.md");
-auto validCards2 = hw.getAvailableCards();
-std::string previousCard = validCards2[2];
+std::string previousCard = "";
 for (size_t i = 0; i < 4; i++)
 {
     std::string newCardName = "AF10" + std::to_string(i);
     hw.createCard(newCardName, cardType::X20AI4622);
+    if (previousCard.empty()){
+        auto validCards2 = hw.getAvailableCards();
+        previousCard = validCards2[2];
+    }
+    
     hw.linkToTarget(previousCard);
     previousCard = newCardName;
 }
@@ -541,3 +557,18 @@ graph TD
     AF100 -- SS1 --> X20TB12f
     AF100 -- SL --> X20BM11e
 ```
+
+### Exporting HW
+
+After adding cards you can export it back to HW. If the MermaidGraph looks allright it should be valid .hw.
+
+```cpp
+auto modulesCsv = hw.importCSV("HW_version-1.0.0.csv");
+hw.combineToExisting(modulesCsv, validcards5[2]);
+hw.exportMermaid("HW_version-1.0.0.md");
+hw.exportHW("Hw_version1.0.0.0.hw");
+printf("Example done");
+```
+
+### LISENCE
+MIT
