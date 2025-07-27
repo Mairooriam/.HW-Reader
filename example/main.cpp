@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
             auto validCards2 = hw.getAvailableCards();
             previousCard = validCards2[2];
         }
-        
+
         hw.linkToTarget(previousCard);
         previousCard = newCardName;
     }
@@ -68,8 +68,9 @@ int main(int argc, char const *argv[])
     hw.exportMermaid("HW_version-1.0.0.md");
     hw.exportHW("Hw_version1.0.0.0.hw");
     printf("Example done");
-    //hw.render();
+
     
+
 
     return 0;
 }
