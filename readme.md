@@ -4,9 +4,9 @@ Goals were:
 
 ✅ Learning!
 
-✅ Library design-
+✅ Library design.
 
-✅ Learn handling XML files- **For the project i used TinyXML2**
+✅ Learn handling XML files. **For the project i used TinyXML2**
 
 ✅ Import HW from CSV and combine to exsisting .hw.  **Works somewhat im very specific cases and with specific cards**
 
@@ -23,6 +23,7 @@ TreeToMermaid is a tool for importing, manipulating, and exporting hardware conf
 
 Importing valid [Hardware.hw](Hardware.hw) and exporting it in mermaid should look like this. Make sure you move hardware.hw or test.csv to the working directory.
 ```cpp
+#include <HwTool.h>
 HwTool::Hw hw;
 hw.importHW("Hardware.hw")
 hw.exportMermaid("Hardware.md")
