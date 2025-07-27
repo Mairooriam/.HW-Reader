@@ -32,8 +32,6 @@ namespace HwTool {
     void LinkToTargetInternal(const std::string& targetModule);
     void deleteCardInternal(const std::string& name);
     
-    // void createCardInternal(const std::string& name, cardType type);
-    
     // UTILS
     std::string getCardBase(const std::string& card);
     std::string getCardSource(const std::string& card);
@@ -42,13 +40,13 @@ namespace HwTool {
     std::string getModuleWithConnectionTarget(const std::string& target);
     std::string getModuleWithConnectionSource(const std::string& module);
     std::set<ConnectorType> getModuleConnectors(const Module& module);
-    
+    std::string getRootBase(const std::unordered_map<std::string, Module>& modules);
+
     public:
     
     Hw(/* args */);
     ~Hw();
     
-        std::string getRootBase(const std::unordered_map<std::string, Module>& modules);
         void importHW(const std::filesystem::path& path, const std::string& version = "");
         void deleteCard(const std::string& name);
         void linkToTarget(const std::string& targetModule);

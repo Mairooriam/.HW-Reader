@@ -101,7 +101,9 @@ namespace HwTool {
                 }
             }
         }
+       
         
+
         // TODO: hitting this is edge case that will cause bug later sorry :))
         if (emptyTargets.size() > 1)
         {
@@ -117,7 +119,6 @@ namespace HwTool {
     Hw::Hw() : m_cmdManager(*this) {}
 
     Hw::~Hw() {}
-
 
     void Hw::importHW(const std::filesystem::path& path, const std::string& version) {
         printf("importing HW\n");
@@ -251,13 +252,25 @@ namespace HwTool {
     }
 
     void Hw::combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& target) {
+        // TODO: bug when adding modules in batch inbetween existing HW.
+        // ->> re linkin of old modules is not implmeented correctly
+        // So only linking to "end of" X20BM11 works. 
+        // Need to implement propagateTargetUpdateUpTheChain();
         auto rootBase = getRootBase(modules);
+        auto rootBaseTarget = getRootBase(m_modules);
         auto targetBase = getCardBase(target);
+        auto targetBaseSource = getModuleWithConnectionSource(targetBase);
         modules[rootBase].connections[0].targetModuleName = targetBase;
         for (const auto& [name, module] : modules) {
             m_modules[name] = module;
         }
-
+        auto rootBaseSource = getModuleWithConnectionSource(rootBase);
+        
+        // if target doesnt have source skip changing the targets of the previous cards. since they dont exist
+        if (!targetBaseSource.empty()){
+            m_modules[rootBaseSource].connections[0].targetModuleName = targetBaseSource;
+            m_modules[targetBaseSource].connections[0].targetModuleName = rootBase;
+        }
         resolveLinking();
     }
 
