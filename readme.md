@@ -1,21 +1,6 @@
 # TreeToMermaid / HwTool
 
-```cpp
-auto modulesCsv = hw.importCSV("HW_version-1.0.0.csv");
-hw.combineToExisting(modulesCsv, validcards5[2]);
-hw.exportMermaid("HW_version-1.0.0.md");
-hw.exportHW("Hw_version1.0.0.0.hw");
-printf("Example done");
-```
-- Create backup of your project's .hw. 
-- Rename exported hardware to hardware.hw. 
-- While the project is closed place the newly made hardware into project\Physical\Config 
-- Start automation studio 6
-- Hardware should show up.
-
-![Hardware diagram](assets/image.png)
-
-![csv diagram](assets/image2.png)
+TreeToMermaid is a tool for importing, manipulating, and exporting hardware configuration data, with a focus on visualizing module connections as Mermaid diagrams. Project is created with Automation studio in mind. Just barely working and will have alot of unwanted behavior.
 ### Goals were:
 
 ✅ Learning!
@@ -32,7 +17,22 @@ printf("Example done");
 
 ❌ Tests **Didnt make tests**
 
-TreeToMermaid is a tool for importing, manipulating, and exporting hardware configuration data, with a focus on visualizing module connections as Mermaid diagrams. Project is created with Automation studio in mind. Just barely working and will have alot of unwanted behavior.
+```cpp
+auto modulesCsv = hw.importCSV("HW_version-1.0.0.csv");
+hw.combineToExisting(modulesCsv, "AFtest");
+hw.exportMermaid("HW_version-1.0.0.md");
+hw.exportHW("Hw_version1.0.0.0.hw");
+```
+- Create backup of your project's .hw. 
+- Rename exported hardware to hardware.hw. 
+- While the project is closed place the newly made hardware into project\Physical\Config 
+- Start automation studio 6
+- Hardware should show up.
+
+![Hardware diagram](assets/image.png)
+
+![csv diagram](assets/image2.png)
+
 
 
 ### Usage
