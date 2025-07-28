@@ -41,7 +41,11 @@ namespace HwTool {
     }
 
     ModuleXmlImporter::~ModuleXmlImporter() {}
-
+    std::unordered_map<std::string, Module> ModuleXmlImporter::getModules() {
+        assert(m_status == ImportStatus::ModulesMapped && "Call MapModules() First!");
+        
+        return m_modules;
+    }
     void ModuleXmlImporter::mapModules() {
         std::unordered_map<std::string, Module> modules;
             
@@ -162,6 +166,7 @@ namespace HwTool {
         }
 
         m_modules = modules;
+        m_status = ImportStatus::ModulesMapped;
     }
     void ModuleXmlImporter::printErrors() {
         for (auto&& s : m_errors) {

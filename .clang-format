@@ -17,7 +17,7 @@ BraceWrapping:
   AfterUnion: false
   BeforeCatch: false
   BeforeElse: false
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Inline 
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 BreakBeforeBraces: Attach

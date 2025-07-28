@@ -1,5 +1,6 @@
 set(TEST_SOURCES
     test_main.cpp
+    V2_Tests.cpp
 )
 
 add_executable(hwtool_tests ${TEST_SOURCES})
@@ -16,6 +17,6 @@ target_include_directories(hwtool_tests
         ${CMAKE_CURRENT_SOURCE_DIR}/../src
         ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
-
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/testHardware.hw ${CMAKE_CURRENT_BINARY_DIR}/testHardware.hw COPYONLY)
 include(GoogleTest)
 gtest_discover_tests(hwtool_tests)

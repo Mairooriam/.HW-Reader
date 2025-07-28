@@ -14,9 +14,10 @@ enum class ImportStatus {
     XmlParseError,
     NoHardwareElement,
     VersionMismatch,
-    ImportError
+    ImportError,
+    ModulesMapped
 };
-
+//TODO: Rethink error hanndling
 namespace HwTool
 {
    class ModuleXmlImporter {
@@ -27,8 +28,8 @@ namespace HwTool
     void mapModules(); // TODO: Error hanlding
 
     bool valid() { return m_status == ImportStatus::OK;}
-    std::vector<std::string> getErrors();
-    std::unordered_map<std::string, Module> getModules() { return m_modules;}
+    std::vector<std::string> getErrors() const { return m_errors; }
+    std::unordered_map<std::string, Module> getModules(); 
     void printErrors();
 
     // In the future, you can add:
