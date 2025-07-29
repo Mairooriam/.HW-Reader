@@ -3,39 +3,51 @@
 #include <format>
 #include "Types.h"
 #include <memory>
+#include "HardwareBuilder.h"
+#include "DataAccess/ModuleXmlExporter.h"
 using namespace HwTool;
 int main(int argc, char const *argv[])
 {
-        using namespace HwTool::V2;
+        
 
-        ModuleMap moduleCache;
+        V2::ModuleMap moduleCache;
 
         // Create modules
-        auto io = std::make_shared<ModuleIO>("io1", IoCardType::X20DO9322, "1.0", "tb1", "base1");
-        auto io2 = std::make_shared<ModuleIO>("io2", IoCardType::X20DO9322, "1.0", "tb2", "base2",io);
-        io->next = io2;
-        auto bus = std::make_shared<ModuleBUS>(/* ... */);
-        auto cpu = std::make_shared<ModuleCPU>(/* ... */);
+        V2::HardwareBuilder hwb;
+        // Create 4 IO cards using the builder
+        auto io1 = hwb.createModuleIoCard("AF100", V2::IoCardType::X20DO9322, "1.0", "X20TB12_1", "X20BM11_1");
+        auto io2 = hwb.createModuleIoCard("AF200", V2::IoCardType::X20DI9372, "1.0", "X20TB12_2", "X20BM11_2");
+        auto io3 = hwb.createModuleIoCard("AF300", V2::IoCardType::X20AI4622, "1.0", "X20TB12_3", "X20BM11_3");
+        auto io4 = hwb.createModuleIoCard("AF400", V2::IoCardType::X20AI4632, "1.0", "X20TB12_4", "X20BM11_4");
+
+        io1->next = io2;
+        io2->previous = io1;
+        io2->next = io3;
+        io3->previous = io2;
+        io3->next = io4;
+        io4->previous = io3;
 
         // Store in cache
-        moduleCache[io->name] = io;
-        moduleCache["bus1"] = bus;
-        moduleCache["cpu1"] = cpu;
+        moduleCache[io1->name] = io1;
+        moduleCache[io2->name] = io2;
+        moduleCache[io3->name] = io3;
+        moduleCache[io4->name] = io4;
+
+        V2::ModuleXmlExporter exp;
+        exp.serialize(moduleCache, "testing.hw");
 
         // Access and use
-        for (const auto& [name, variant] : moduleCache) {
-            std::cout << "Module name: " << name << " | ";
-            std::visit([](auto&& ptr) {
-                using T = std::decay_t<decltype(ptr)>;
-                if constexpr (std::is_same_v<T, std::shared_ptr<ModuleIO>>) {
-                    std::cout << "Type: IO, version: " << ptr->version << "\n";
-                } else if constexpr (std::is_same_v<T, std::shared_ptr<ModuleBUS>>) {
-                    std::cout << "Type: BUS\n";
-                } else if constexpr (std::is_same_v<T, std::shared_ptr<ModuleCPU>>) {
-                    std::cout << "Type: CPU\n";
-                }
-        }, variant);
-    }
+        // for (const auto& [name, variant] : moduleCache) {
+        //     std::cout << "Module name: " << name << " | ";
+        //     std::visit([](auto&& arg){
+        //     using T = std::decay_t<decltype(arg)>;
+        //     if constexpr (std::is_same_v<T, V2::ModuleIO>){
+        //         std::cout << "ModuleIO" << "\n";
+        //     } else {
+        //         assert(false && "Not handling all types yet.");
+        //     }
+        // },variant);
+    
     
     return 0;
 }

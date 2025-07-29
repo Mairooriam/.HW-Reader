@@ -2,7 +2,7 @@
 #include "Types.h"
 #include <set>
 #include "hwUtils.h"
-
+#include <memory>
 namespace HwTool{
     class HardwareBuilder
     {
@@ -30,6 +30,22 @@ namespace HwTool{
         }
     };
 
+    namespace V2 {
 
+        class HardwareBuilder
+        {
+        private:
+            /* data */
+        public:
+            HardwareBuilder(/* args */);
+            std::shared_ptr<V2::ModuleIO> createModuleIoCard(const std::string& name, IoCardType type, const std::string& version, const std::string& tbName, const std::string& bmName);
+            //std::shared_ptr<V2::ModuleCPU> createModuleCpu(const std::string& name, cardType type, const std::string& version = "1.0", const std::string& tbName, const std::string& bmName);
+            //std::shared_ptr<V2::ModuleBUS> createModuleBus(const std::string& name, cardType type, const std::string& version = "1.0", const std::string& tbName, const std::string& bmName);
+
+            ~HardwareBuilder();
+        };
+
+
+    }
 }    
 

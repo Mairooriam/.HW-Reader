@@ -3,7 +3,32 @@ namespace HwTool{
     HardwareBuilder::HardwareBuilder()
     {
     }
-    
+    namespace V2 {
+        std::shared_ptr<V2::ModuleIO> V2::HardwareBuilder::createModuleIoCard(
+            const std::string &name, IoCardType type, const std::string &version,
+            const std::string &tbName, const std::string &bmName) {
+            return std::make_shared<ModuleIO>(name, type, version, tbName, bmName);
+        }
+        HardwareBuilder::HardwareBuilder(){}
+        HardwareBuilder::~HardwareBuilder(){}
+        // std::shared_ptr<ModuleCPU> HardwareBuilder::createModuleCpu(const std::string &name,
+        //                                                                 cardType type,
+        //                                                                 const std::string &version,
+        //                                                                 const std::string &tbName,
+        //                                                                 const std::string &bmName) {
+        //     return std::shared_ptr<ModuleCPU>(name, type, version, tbName, bmName);
+        // }
+
+        // std::shared_ptr<:ModuleBUS> HardwareBuilder::createModuleBus(const std::string &name,
+        //                                                                 cardType type,
+        //                                                                 const std::string &version,
+        //                                                                 const std::string &tbName,
+        //                                                                 const std::string &bmName) {
+        //     return std::make_shared<ModuleBUS>(name, type, version, tbName, bmName);
+        // }
+
+    }  // namespace V2
+
     HardwareBuilder::~HardwareBuilder() {}
     
     Module HardwareBuilder::X20BM11(const std::string &name, const std::string &version,

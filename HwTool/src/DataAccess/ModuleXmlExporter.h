@@ -19,4 +19,18 @@ namespace HwTool{
         void serialize(const std::unordered_map<std::string, Module>& modules, const std::string& filename);
     };
 
+    namespace V2{
+        class ModuleXmlExporter
+        {
+        private:
+            /* data */
+        public:
+            ModuleXmlExporter(/* args */);
+            void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::ModuleIO& mod);
+            void serialize(const V2::ModuleMap& modules, const std::string& filename);
+            ~ModuleXmlExporter();
+        };
+        
+    }
+
 }

@@ -72,6 +72,11 @@ namespace HwTool {
             X20AI4632,
         };
 
+        // enum class BaseType{
+        //     ERROR = 0,
+
+        //     X20BM11,
+        // };
         struct ModuleIO;
         struct ModuleBUS;
         struct ModuleCPU;
@@ -102,7 +107,7 @@ namespace HwTool {
             std::optional<ModuleVariant> next;
 
             ModuleIO() = default;
-            ModuleIO(std::string n, IoCardType t, std::string v, std::string tb_, std::string base_,
+            ModuleIO(std::string n, IoCardType t, std::string v, std::string tb_, std::string base_, 
                      std::optional<ModuleVariant> prev = std::nullopt,
                      std::optional<ModuleVariant> nxt = std::nullopt)
                 : name(std::move(n)),
