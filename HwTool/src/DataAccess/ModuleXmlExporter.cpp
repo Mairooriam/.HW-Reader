@@ -9,6 +9,7 @@ namespace HwTool {
 
         void ModuleXmlExporter::serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent,
                                               const V2::ModuleIO& mod) {
+            //TODO: make more dynamic? or just keep explicit like this idk.
             // Handle IO Card
             auto* modElem = doc.NewElement("Module");
             modElem->SetAttribute("Name", mod.name.c_str());
@@ -51,7 +52,47 @@ namespace HwTool {
             parent->InsertEndChild(baseElem);
             parent->InsertEndChild(modElem);
         }
-        
+
+        void ModuleXmlExporter::serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent,
+                                          const V2::ModuleBUS& mod) {
+
+            // Handle bus module
+            auto* modElem = doc.NewElement("Module");
+            modElem->SetAttribute("Name", mod.name.c_str());
+            modElem->SetAttribute("Type", magic_enum::enum_name(mod.type).data());
+            modElem->SetAttribute("Version", mod.version.c_str());
+            modElem->SetAttribute("NodeNumber", mod.nodeNumber);
+
+            // Connection 1
+            auto* child = doc.NewElement("Connection");
+            child->SetAttribute("Connector", "PLK1");
+            child->SetAttribute("TargetModule", "NOT_IMPLEMENTED");//TODO: Ad handling for previous Remember module card always has previous. if it doesnt its not valid.
+            child->SetAttribute("TargetConnector" , "IF3");
+
+            // cable
+            //TODO: Are all modules connected with powerlinkcable?
+            // possibly need handling for different connections.
+            //TODO: what specifies the lenght? default seems like 10
+            //TODO: what specifies cable version?
+            auto* cable = doc.NewElement("Cable");
+            cable->SetAttribute("Type", "PowerLinkCable");
+            cable->SetAttribute("Lenght", "10");
+            cable->SetAttribute("Version", "1.0.0.3");
+            child->InsertEndChild(cable);
+
+            // Connection 2
+            auto* con2 = doc.NewElement("Connection");
+            con2->SetAttribute("Connector", "SL");
+            con2->SetAttribute("TargetModule", mod.base.c_str());
+            con2->SetAttribute("TargetConnector" , "SL1");
+
+
+            modElem->InsertEndChild(child);
+            modElem->InsertEndChild(con2);
+
+            parent->InsertEndChild(modElem);
+        }
+
         void ModuleXmlExporter::serialize(const V2::ModuleMap& modules,
                                               const std::string& filename) {
             tinyxml2::XMLDocument doc;
@@ -73,8 +114,13 @@ namespace HwTool {
                 std::visit([&](auto&& arg){
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::shared_ptr<V2::ModuleIO>>) {
-                    serialize(doc, root, *arg); // Dereference the shared_ptr to get the object
-                } else {
+                    serialize(doc, root, *arg); 
+                }else if constexpr (std::is_same_v<T, std::shared_ptr<V2::ModuleBUS>>)
+                {
+                    serialize(doc, root, *arg);
+                }
+                 
+                else {
                     assert(false && "Not handling all types yet.");
                 }
             }, mod);

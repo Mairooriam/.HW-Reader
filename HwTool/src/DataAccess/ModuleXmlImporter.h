@@ -42,4 +42,48 @@ private:
     std::unordered_map<std::string, Module> m_modules;
     
 };
+    namespace V2 {
+        struct ParsedType {
+            enum class Kind { Base, Bus, IO, CPU, Unknown } kind;
+            std::variant<V2::BaseType, V2::BusModuleType, V2::IoCardType, V2::CpuType> value;
+        };
+
+        inline ParsedType parseModuleType(const std::string& typeStr) {
+            using namespace HwTool::V2;
+            if (auto io = magic_enum::enum_cast<IoCardType>(typeStr); io.has_value()) {
+                return {ParsedType::Kind::IO, io.value()};
+            }
+            if (auto bus = magic_enum::enum_cast<BusModuleType>(typeStr); bus.has_value()) {
+                return {ParsedType::Kind::Bus, bus.value()};
+            }
+            if (auto base = magic_enum::enum_cast<BaseType>(typeStr); base.has_value()) {
+                return {ParsedType::Kind::Base, base.value()};
+            }
+            return {ParsedType::Kind::Unknown, IoCardType::ERROR}; 
+        }
+
+        static std::tuple<std::string, std::string, std::string>
+        extractModuleNameTypeVersion(const tinyxml2::XMLElement* moduleElem); 
+
+        class ModuleXmlImporter
+        {
+        public:
+            ModuleXmlImporter(const std::filesystem::path& path);
+            ~ModuleXmlImporter();
+            ModuleMap mapModules(); // TODO: Error hanlding
+            bool valid() { return m_status == ImportStatus::OK;}
+            ImportStatus getStatus(){ return m_status; }
+            
+
+
+
+        private:
+            tinyxml2::XMLDocument m_doc;
+            tinyxml2::XMLElement* m_hw;
+            V2::ModuleMap m_modules;
+            ImportStatus m_status;
+        };
+        
+    }
+
 }

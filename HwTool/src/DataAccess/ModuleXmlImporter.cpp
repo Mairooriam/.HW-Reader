@@ -4,9 +4,167 @@
 
 #include <iostream>
 #include <magic_enum/magic_enum.hpp>
-
+#include <variant>
+#include <print>
+#include "HardwareBuilder.h"
 using namespace tinyxml2;
 namespace HwTool {
+    namespace V2 {
+
+
+        ModuleXmlImporter::ModuleXmlImporter(const std::filesystem::path& path){
+            if (!std::filesystem::exists(path)) {
+                m_status = ImportStatus::FileNotFound;
+                std::cout << "File does not exist: " << path.string() << std::endl;
+                return;
+            }
+            if (!std::filesystem::is_regular_file(path)) {
+                m_status = ImportStatus::FileNotFound;
+                std::cout << "Not a regular file: " << path.string() << std::endl;
+                return;
+            }
+
+            tinyxml2::XMLError result = m_doc.LoadFile(path.string().c_str());
+            if (result != tinyxml2::XML_SUCCESS) {
+                m_status = ImportStatus::XmlParseError;
+                std::cout << "TinyXML2 error (" << result << "): "
+                        << (m_doc.ErrorStr() ? m_doc.ErrorStr() : "Unknown error") << std::endl;
+                return;
+            }
+
+            // TODO: Validate version etc.
+            //  <?AutomationStudio Version=6.0.2.177 FileVersion="4.9"?>
+
+            m_hw = m_doc.FirstChildElement("Hardware");
+            if (!m_hw) {
+                m_status = ImportStatus::NoHardwareElement;
+                std::cout << "No <Hardware> element found in file: " << path.string() << std::endl;
+                return;
+            }
+        }
+        ModuleXmlImporter::~ModuleXmlImporter(){}
+
+        //TODO: split into smaller pieces? maybe?
+        ModuleMap ModuleXmlImporter::mapModules(){
+            HardwareBuilder hwb;
+            ModuleVariant parsedModule;
+            std::vector<std::shared_ptr<HwTool::V2::ModuleIO>> parsedIO; // maybe delete
+
+            ModuleMap res;
+            std::unordered_map<std::string, std::string> baseLinkMap;
+            
+
+            for (auto moduleElem = m_hw->FirstChildElement("Module"); moduleElem;){
+                auto* nextElem = moduleElem->NextSiblingElement("Module");
+                auto [name, type, version] = extractModuleNameTypeVersion(moduleElem->ToElement());
+                auto parsed = parseModuleType(type);
+                switch (parsed.kind) {
+                    case ParsedType::Kind::IO:{
+                        std::string tb;
+                        std::string bm;
+                        printf("IO");
+                        // Use std::get<IoCardType>(parsed.value)
+                        for (auto childElem = moduleElem->FirstChildElement(); childElem;
+                                childElem = childElem->NextSiblingElement()) {
+                            std::string childName = childElem->Name();
+                            if (childName == "Connection") {
+                                //TODO: Ignoring connectors -> test if causes problems anywhere
+                                const char* connectorAttr = childElem->Attribute("Connector");
+                                const char* targetModuleAttr = childElem->Attribute("TargetModule");
+                                
+                                    if (targetModuleAttr && connectorAttr && std::string(connectorAttr) == "SS1") {
+                                        tb = targetModuleAttr;
+                                    } else if (targetModuleAttr && connectorAttr && std::string(connectorAttr) == "SL") {
+                                        bm = targetModuleAttr;
+                                    }else{
+                                    assert(false && "shouldnt probably happen :)");
+                                }
+                            }
+                        }
+                        parsedIO.push_back(hwb.createModuleIoCard(name, std::get<IoCardType>(parsed.value), "1.1.0.0", tb, bm));
+                        //parsedModule = hwb.createModuleIoCard(name, std::get<IoCardType>(parsed.value), "1.1.0.0", tb, bm);
+                        //res[name] = parsedModule;
+                        m_hw->DeleteChild(moduleElem);
+                        break;}
+                    case ParsedType::Kind::Bus:
+                        printf("bus");
+                        // Use std::get<BusModuleType>(parsed.value)
+                        break;
+                    case ParsedType::Kind::Base:
+                        printf("base");
+                        for (auto childElem = moduleElem->FirstChildElement(); childElem;
+                                childElem = childElem->NextSiblingElement()) {
+                            std::string childName = childElem->Name();
+                            if (childName == "Connection") {
+                                //TODO: Ignoring connectors -> test if causes problems anywhere
+                                const char* connectorAttr = childElem->Attribute("Connector");
+                                const char* targetModuleAttr = childElem->Attribute("TargetModule");
+                                
+                                    if (targetModuleAttr && connectorAttr && std::string(connectorAttr) == "X2X1") {
+                                        baseLinkMap[name] = targetModuleAttr;
+                                    } else{
+                                    //TODO: in this it will happen on anything other than BM11
+                                    assert(false && "shouldnt probably happen :)");
+                                }
+                            }
+                        }
+                        
+                        break;
+                    case ParsedType::Kind::CPU:
+                        printf("Cpu");
+                    default:
+                        printf("[N]");
+                        break;
+                }
+                moduleElem = nextElem;
+            }
+
+            //TODO: think of better linking this is bad.
+            // not probably for performance but interesintg problem
+            // Maybe during initial io parsing create additional cache of base 
+            // map that has base -> iocard. 
+            // and use that in this step to have o(1) lookup to skip the second for loop?
+
+            //TODO: implement this for the moduleVariant since it is currently only for IO
+            // not finding BB52 for example since its cpu
+            for (const auto& m : parsedIO) {
+                std::string targetBase = baseLinkMap[m->base];
+                for (auto &&m2 : parsedIO)
+                {
+                    if (m2->base == targetBase)
+                    {
+                        m->next = m2;
+                        m2->previous =m;
+                        res[m->name] = m;
+                        break;
+                    }
+                    
+                }
+                
+            }
+            std::cout << "hehehe" << "\n";
+            return res;
+        };
+
+        //TODO: add error handling
+        std::tuple<std::string, std::string, std::string> extractModuleNameTypeVersion(
+            const tinyxml2::XMLElement* moduleElem) {
+            std::string name, type, version;
+            for (const tinyxml2::XMLAttribute* attr = moduleElem->FirstAttribute(); attr; attr = attr->Next()) {
+                std::string attrName = attr->Name();
+                std::string attrValue = attr->Value();
+                if (attrName == "Name") {
+                    name = attrValue;
+                } else if (attrName == "Type") {
+                    type = attrValue;
+                } else if (attrName == "Version") {
+                    version = attrValue;
+                }
+            }
+            return {name, type, version};
+        }
+
+    }  // namespace V2
     ModuleXmlImporter::ModuleXmlImporter(const std::filesystem::path& path) {
         m_status = ImportStatus::OK;
 
@@ -46,6 +204,7 @@ namespace HwTool {
         
         return m_modules;
     }
+
     void ModuleXmlImporter::mapModules() {
         std::unordered_map<std::string, Module> modules;
             

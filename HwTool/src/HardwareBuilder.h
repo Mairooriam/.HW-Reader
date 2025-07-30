@@ -40,7 +40,7 @@ namespace HwTool{
             HardwareBuilder(/* args */);
             std::shared_ptr<V2::ModuleIO> createModuleIoCard(const std::string& name, IoCardType type, const std::string& version, const std::string& tbName, const std::string& bmName);
             //std::shared_ptr<V2::ModuleCPU> createModuleCpu(const std::string& name, cardType type, const std::string& version = "1.0", const std::string& tbName, const std::string& bmName);
-            //std::shared_ptr<V2::ModuleBUS> createModuleBus(const std::string& name, cardType type, const std::string& version = "1.0", const std::string& tbName, const std::string& bmName);
+            std::shared_ptr<V2::ModuleBUS> createModuleBus(const std::string& name, BusModuleType type, const std::string& version, const std::string& bmName, int nodeID);
 
             ~HardwareBuilder();
         };

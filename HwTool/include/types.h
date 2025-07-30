@@ -62,7 +62,7 @@ enum class ConnectorType {
 namespace HwTool {
 
     namespace V2 {
-
+        //TODO: better alternative to enums.
         enum class IoCardType {
             ERROR = 0,
 
@@ -72,31 +72,87 @@ namespace HwTool {
             X20AI4632,
         };
 
-        // enum class BaseType{
-        //     ERROR = 0,
+        enum class BusModuleType{
+            ERROR = 0,
 
-        //     X20BM11,
-        // };
+            X20BX0083,
+        };
+
+        enum class BaseType{
+            ERROR = 0,
+
+            X20BM11,
+            X20BB52,
+            X20BB80,
+        };
+
+        enum class CpuType{
+            ERROR,
+
+            XCP0484_1,
+        };
         struct ModuleIO;
         struct ModuleBUS;
         struct ModuleCPU;
         using ModuleVariant = std::variant<std::shared_ptr<ModuleIO>, std::shared_ptr<ModuleBUS>,
                                            std::shared_ptr<ModuleCPU>>;
 
-        using ModuleMap = std::unordered_map<std::string, ModuleVariant>;
-        // TODO: implement CPU Modules
-        // TODO: implement Bus Modules
-        struct ModuleBUS {
-            std::string name;
-            ModuleBUS() = default;
-            ModuleBUS(std::string n) : name(std::move(n)) {}
-        };
+        using BaseMap = std::unordered_map<std::string, BaseType>;
 
+        using ModuleMap = std::unordered_map<std::string, ModuleVariant>;
+
+        // TODO: For now simple but might need to be dynamic later? for more complicated CPUS
+
+        struct Connector {
+            std::string name;
+            std::unordered_map<std::string, std::string> parameters;
+        };
+        
         struct ModuleCPU {
             std::string name;
+            std::string type;
+            std::string version;
+            std::string base;
+            V2::Connector connector;
+            std::unordered_map<std::string, std::string> parameters;
+            std::string group;
+
             ModuleCPU() = default;
-            ModuleCPU(std::string n) : name(std::move(n)) {}
+            ModuleCPU(std::string n, std::string t, std::string v, std::string b,
+                V2::Connector conn = {}, std::unordered_map<std::string, std::string> params = {},
+                std::string g = {})
+            : name(std::move(n)),
+            type(std::move(t)),
+            version(std::move(v)),
+            base(std::move(b)),
+            connector(std::move(conn)),
+            parameters(std::move(params)),
+            group(std::move(g)) {}
         };
+
+
+        // TODO: add also Powersupply? maybe own struct?
+        struct ModuleBUS {
+            std::string name;
+            BusModuleType type;
+            std::string version;
+            std::string base;
+            int nodeNumber;
+            ModuleVariant previous;
+            std::optional<ModuleVariant> next;
+
+            ModuleBUS() = default;
+            ModuleBUS(std::string n, BusModuleType t, std::string v, std::string b, int nodeNum,
+                    ModuleVariant prev = {}, std::optional<ModuleVariant> nxt = std::nullopt)
+                : name(std::move(n)),
+                type(t),
+                version(std::move(v)),
+                base(std::move(b)),
+                nodeNumber(nodeNum),
+                previous(std::move(prev)),
+                next(std::move(nxt)) {}
+        };
+
         struct ModuleIO {
             std::string name;
             IoCardType type;

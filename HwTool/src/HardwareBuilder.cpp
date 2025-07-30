@@ -9,7 +9,19 @@ namespace HwTool{
             const std::string &tbName, const std::string &bmName) {
             return std::make_shared<ModuleIO>(name, type, version, tbName, bmName);
         }
-        HardwareBuilder::HardwareBuilder(){}
+        std::shared_ptr<V2::ModuleBUS> HardwareBuilder::createModuleBus(const std::string &name,
+                                                                        BusModuleType type,
+                                                                        const std::string &version,
+                                                                        const std::string& bmName,
+                                                                        int nodeID
+                                                                        ) {
+            
+            
+                                                                    
+            return std::make_shared<V2::ModuleBUS>(name, type, version, bmName, nodeID);
+
+        }
+        HardwareBuilder::HardwareBuilder() {}
         HardwareBuilder::~HardwareBuilder(){}
         // std::shared_ptr<ModuleCPU> HardwareBuilder::createModuleCpu(const std::string &name,
         //                                                                 cardType type,
