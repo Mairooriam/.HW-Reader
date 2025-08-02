@@ -6,19 +6,29 @@
 #include "HardwareBuilder.h"
 #include "DataAccess/ModuleXmlExporter.h"
 #include "DataAccess/ModuleXmlImporter.h"
+#include "DataAccess/ModuleMermaidExporter.h"
 using namespace HwTool;
 int main(int argc, char const *argv[])
 {
         V2::ModuleXmlImporter impr("hardware.hw");
         auto testi = impr.mapModules();
+
+
+        
         V2::ModuleXmlExporter expr;
-        expr.serialize(testi, "Test");
+        //TODO: before continuing maybe implement mermaid?
+        // or atleast the CPU linkin part 
+        expr.serialize(testi, "Test.hw");
         V2::ModuleMap moduleCache;
+
+        ModuleMermaidExporter exprm("testng.md");
+        exprm.serialize(testi);
+
 
         // Create modules
         V2::HardwareBuilder hwb;
         // Create 4 IO cards using the builder
-        auto cpu = std::make_shared<V2::ModuleCPU>("Cpu_test", "X20CP0484-1", "1.8.1.0", "X20BB52");
+        auto cpu = V2::ModuleCPU("Cpu_test", V2::CpuType::X20CP0484_1, "1.8.1.0", "X20BB52");
         auto hub = hwb.createModuleBus("AF999", V2::BusModuleType::X20BX0083, "2.16.1.0","X20BB80_1", 1);
         auto io1 = hwb.createModuleIoCard("AF100", V2::IoCardType::X20DO9322, "1.0", "X20TB12_1", "X20BM11_1");
         auto io2 = hwb.createModuleIoCard("AF200", V2::IoCardType::X20DI9372, "1.0", "X20TB12_2", "X20BM11_2");
@@ -28,24 +38,24 @@ int main(int argc, char const *argv[])
         V2::Connector conc;
         conc.name = "IF2";
         conc.parameters["ConfigurationID"] = "Mir_Mir_config1";
-        cpu->connector = conc;
-        cpu->parameters["ConfigurationID"] = "test_Config1";
-        cpu->group = "FileDevice1";
+        cpu.connector = conc;
+        cpu.parameters["ConfigurationID"] = "test_Config1";
+        cpu.group = "FileDevice1";
 
-        hub->next = io1;
-        io1->next = io2;
-        io2->previous = io1;
-        io2->next = io3;
-        io3->previous = io2;
-        io3->next = io4;
-        io4->previous = io3;
+        // hub->next = io1;
+        // io1->next = io2;
+        // io2->previous = io1;
+        // io2->next = io3;
+        // io3->previous = io2;
+        // io3->next = io4;
+        // io4->previous = io3;
 
-        // Store in cache
-        moduleCache[hub->name] = hub;
-        moduleCache[io1->name] = io1;
-        moduleCache[io2->name] = io2;
-        moduleCache[io3->name] = io3;
-        moduleCache[io4->name] = io4;
+        // // Store in cache
+        // moduleCache[hub->name] = hub;
+        // moduleCache[io1->name] = io1;
+        // moduleCache[io2->name] = io2;
+        // moduleCache[io3->name] = io3;
+        // moduleCache[io4->name] = io4;
 
         V2::ModuleXmlExporter exp;
         exp.serialize(moduleCache, "testing.hw");

@@ -28,7 +28,10 @@ namespace HwTool{
             ModuleXmlExporter(/* args */);
             void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::ModuleIO& mod);
             void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::ModuleBUS& mod);
+            void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::ModuleCPU& mod);
+            void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::Connector& mod);
             void serialize(const V2::ModuleMap& modules, const std::string& filename);
+
             ~ModuleXmlExporter();
         };
         

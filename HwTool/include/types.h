@@ -89,45 +89,61 @@ namespace HwTool {
         enum class CpuType{
             ERROR,
 
-            XCP0484_1,
+            X20CP0484_1,
         };
         struct ModuleIO;
         struct ModuleBUS;
         struct ModuleCPU;
-        using ModuleVariant = std::variant<std::shared_ptr<ModuleIO>, std::shared_ptr<ModuleBUS>,
-                                           std::shared_ptr<ModuleCPU>>;
+        using ModuleVariant = std::variant<ModuleIO, ModuleBUS,
+                                           ModuleCPU>;
 
         using BaseMap = std::unordered_map<std::string, BaseType>;
 
         using ModuleMap = std::unordered_map<std::string, ModuleVariant>;
 
-        // TODO: For now simple but might need to be dynamic later? for more complicated CPUS
-
+        template<typename T>
+        std::optional<T> getNextTyped(const T& module) {
+            static_assert(
+                std::is_same_v<T, ModuleIO> ||
+                std::is_same_v<T, ModuleBUS> ||
+                std::is_same_v<T, ModuleCPU>,
+                "T must be one of the module types"
+            );
+            
+            if (module.next.has_value()) {
+                if (auto nextPtr = std::get_if<T>(&*module.next)) {
+                    return *nextPtr;
+                }
+            }
+            return std::nullopt;
+        }
         struct Connector {
             std::string name;
             std::unordered_map<std::string, std::string> parameters;
         };
-        
+       
+
         struct ModuleCPU {
             std::string name;
-            std::string type;
+            CpuType type;
             std::string version;
             std::string base;
             V2::Connector connector;
             std::unordered_map<std::string, std::string> parameters;
             std::string group;
-
+            ModuleVariant* next;
             ModuleCPU() = default;
-            ModuleCPU(std::string n, std::string t, std::string v, std::string b,
+            ModuleCPU(std::string n, CpuType t, std::string v, std::string b,
                 V2::Connector conn = {}, std::unordered_map<std::string, std::string> params = {},
-                std::string g = {})
+                std::string g = {}, ModuleVariant* nxt = nullptr)
             : name(std::move(n)),
-            type(std::move(t)),
+            type(t),
             version(std::move(v)),
             base(std::move(b)),
             connector(std::move(conn)),
             parameters(std::move(params)),
-            group(std::move(g)) {}
+            group(std::move(g)),
+            next(std::move(nxt)) {}
         };
 
 
@@ -138,12 +154,11 @@ namespace HwTool {
             std::string version;
             std::string base;
             int nodeNumber;
-            ModuleVariant previous;
-            std::optional<ModuleVariant> next;
-
+            ModuleVariant* previous;
+            ModuleVariant* next;
             ModuleBUS() = default;
             ModuleBUS(std::string n, BusModuleType t, std::string v, std::string b, int nodeNum,
-                    ModuleVariant prev = {}, std::optional<ModuleVariant> nxt = std::nullopt)
+                    ModuleVariant* prev = nullptr, ModuleVariant* nxt = nullptr)
                 : name(std::move(n)),
                 type(t),
                 version(std::move(v)),
@@ -159,13 +174,12 @@ namespace HwTool {
             std::string version;
             std::string tb;
             std::string base;
-            std::optional<ModuleVariant> previous;
-            std::optional<ModuleVariant> next;
-
+            ModuleVariant* previous;
+            ModuleVariant* next;
             ModuleIO() = default;
             ModuleIO(std::string n, IoCardType t, std::string v, std::string tb_, std::string base_, 
-                     std::optional<ModuleVariant> prev = std::nullopt,
-                     std::optional<ModuleVariant> nxt = std::nullopt)
+                     ModuleVariant* prev = nullptr,
+                     ModuleVariant* nxt = nullptr)
                 : name(std::move(n)),
                   type(t),
                   version(std::move(v)),

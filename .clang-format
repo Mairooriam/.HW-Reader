@@ -26,3 +26,5 @@ SpaceInEmptyParentheses: false
 SpacesInParentheses: false
 AllowShortCaseLabelsOnASingleLine: true
 IndentCaseLabels: true
+ContinuationIndentWidth: 8
+AlignAfterOpenBracket: DontAlign

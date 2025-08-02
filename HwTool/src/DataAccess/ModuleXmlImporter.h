@@ -49,15 +49,19 @@ private:
         };
 
         inline ParsedType parseModuleType(const std::string& typeStr) {
+            std::string normalized  = typeStr;
+            std::replace(normalized.begin(), normalized.end(), '-', '_');
             using namespace HwTool::V2;
-            if (auto io = magic_enum::enum_cast<IoCardType>(typeStr); io.has_value()) {
+            if (auto io = magic_enum::enum_cast<IoCardType>(normalized); io.has_value()) {
                 return {ParsedType::Kind::IO, io.value()};
             }
-            if (auto bus = magic_enum::enum_cast<BusModuleType>(typeStr); bus.has_value()) {
+            if (auto bus = magic_enum::enum_cast<BusModuleType>(normalized); bus.has_value()) {
                 return {ParsedType::Kind::Bus, bus.value()};
             }
-            if (auto base = magic_enum::enum_cast<BaseType>(typeStr); base.has_value()) {
+            if (auto base = magic_enum::enum_cast<BaseType>(normalized); base.has_value()) {
                 return {ParsedType::Kind::Base, base.value()};
+            } if (auto base = magic_enum::enum_cast<CpuType>(normalized); base.has_value()){
+                return {ParsedType::Kind::CPU, base.value()};
             }
             return {ParsedType::Kind::Unknown, IoCardType::ERROR}; 
         }
@@ -70,7 +74,7 @@ private:
         public:
             ModuleXmlImporter(const std::filesystem::path& path);
             ~ModuleXmlImporter();
-            ModuleMap mapModules(); // TODO: Error hanlding
+            const ModuleMap& mapModules(); // TODO: Error hanlding
             bool valid() { return m_status == ImportStatus::OK;}
             ImportStatus getStatus(){ return m_status; }
             

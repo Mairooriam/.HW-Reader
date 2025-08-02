@@ -37,9 +37,9 @@ namespace HwTool {
             child = doc.NewElement("Connection");
             child->SetAttribute("Connector", "X2X1");
             if (mod.next) {
-                if (auto nextPtr = std::get_if<std::shared_ptr<V2::ModuleIO>>(&*mod.next)) {
-                    if (*nextPtr) {
-                        child->SetAttribute("TargetModule", nextPtr->get()->base.c_str());
+                if (auto nextPtr = std::get_if<V2::ModuleIO>(mod.next)) {
+                    if (nextPtr) {
+                        child->SetAttribute("TargetModule", nextPtr->base.c_str());
                     }else {
                         child->SetAttribute("TargetModule", "");
                     }
@@ -52,7 +52,21 @@ namespace HwTool {
             parent->InsertEndChild(baseElem);
             parent->InsertEndChild(modElem);
         }
+        void ModuleXmlExporter::serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::Connector& mod){
+            auto* connectorElem = doc.NewElement("Connector");
+            connectorElem->SetAttribute("Name", mod.name.c_str());
 
+            // Add <Parameter ID="..." Value="..."/> for each parameter
+            for (const auto& [id, value] : mod.parameters) {
+                auto* paramElem = doc.NewElement("Parameter");
+                paramElem->SetAttribute("ID", id.c_str());
+                paramElem->SetAttribute("Value", value.c_str());
+                connectorElem->InsertEndChild(paramElem);
+            }
+
+            // Attach to parent
+            parent->InsertEndChild(connectorElem);
+        }
         void ModuleXmlExporter::serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent,
                                           const V2::ModuleBUS& mod) {
 
@@ -93,6 +107,39 @@ namespace HwTool {
             parent->InsertEndChild(modElem);
         }
 
+        void ModuleXmlExporter::serialize(
+                tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const V2::ModuleCPU& mod) {
+                    // initial module
+                    auto* modElem = doc.NewElement("Module");
+                    modElem->SetAttribute("Name", mod.name.c_str());
+                    modElem->SetAttribute("Type", magic_enum::enum_name(mod.type).data());
+                    modElem->SetAttribute("Version", mod.version.c_str());
+
+                    // Connection 
+                    auto* child = doc.NewElement("Connection");
+                    child->SetAttribute("Connector", "SL1");
+                    child->SetAttribute("TargetModule", mod.base.c_str());
+                    child->SetAttribute("TargetConnector" , "SL1");
+                    modElem->InsertEndChild(child);
+                    serialize(doc, modElem, mod.connector);
+
+                    // Parameters
+                    for (const auto& [id, value] : mod.parameters) {
+                        auto* paramElem = doc.NewElement("Parameter");
+                        paramElem->SetAttribute("ID", id.c_str());
+                        paramElem->SetAttribute("Value", value.c_str());
+                        modElem->InsertEndChild(paramElem);
+                    }
+                    // Group 
+                    if (!mod.group.empty()) {
+                        auto* groupElem = doc.NewElement("Group");
+                        groupElem->SetAttribute("ID", mod.group.c_str());
+                        modElem->InsertEndChild(groupElem);
+                    }
+
+                    parent->InsertEndChild(modElem);
+                }
+
         void ModuleXmlExporter::serialize(const V2::ModuleMap& modules,
                                               const std::string& filename) {
             tinyxml2::XMLDocument doc;
@@ -113,11 +160,13 @@ namespace HwTool {
                 
                 std::visit([&](auto&& arg){
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, std::shared_ptr<V2::ModuleIO>>) {
-                    serialize(doc, root, *arg); 
-                }else if constexpr (std::is_same_v<T, std::shared_ptr<V2::ModuleBUS>>)
+                if constexpr (std::is_same_v<T, V2::ModuleIO>) {
+                    serialize(doc, root, arg); 
+                }else if constexpr (std::is_same_v<T, V2::ModuleBUS>)
                 {
-                    serialize(doc, root, *arg);
+                    serialize(doc, root, arg);
+                }else if constexpr (std::is_same_v<T, V2::ModuleCPU>){
+                    serialize(doc, root, arg);
                 }
                  
                 else {
