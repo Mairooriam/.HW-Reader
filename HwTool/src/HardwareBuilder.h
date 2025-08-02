@@ -40,12 +40,12 @@ namespace HwTool {
             /* data */
         public:
             HardwareBuilder(/* args */);
-            V2::ModuleIO createModuleIoCard(const std::string& name,
+            ModuleIO createModuleIoCard(const std::string& name,
                     IoCardType type, const std::string& version, const std::string& tbName,
                     const std::string& bmName);
-            V2::ModuleCPU createModuleCpu(const std::string& name, CpuType type, const std::string& bmName,
+            ModuleCPU createModuleCpu(const std::string& name, CpuType type, const std::string& bmName,
                     const std::string& version = "1.0");
-            V2::ModuleBUS createModuleBus(const std::string& name,
+            ModuleBUS createModuleBus(const std::string& name,
                     BusModuleType type, const std::string& version, const std::string& bmName,
                     int nodeID);
 

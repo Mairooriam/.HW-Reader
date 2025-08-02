@@ -10,7 +10,7 @@ namespace HwTool {
         void ModuleXmlExporter::serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent,
                                               const V2::ModuleIO& mod) {
             //TODO: make more dynamic? or just keep explicit like this idk.
-            // Handle IO Card
+            //Handle IO Card
             auto* modElem = doc.NewElement("Module");
             modElem->SetAttribute("Name", mod.name.c_str());
             modElem->SetAttribute("Type", magic_enum::enum_name(mod.type).data());
@@ -36,17 +36,8 @@ namespace HwTool {
 
             child = doc.NewElement("Connection");
             child->SetAttribute("Connector", "X2X1");
-            if (mod.next) {
-                if (auto nextPtr = std::get_if<V2::ModuleIO>(mod.next)) {
-                    if (nextPtr) {
-                        child->SetAttribute("TargetModule", nextPtr->base.c_str());
-                    }else {
-                        child->SetAttribute("TargetModule", "");
-                    }
-                }
-            }else{
-                child->SetAttribute("TargetModule", "");
-            }
+            child->SetAttribute("TargetModule", mod.nextModuleName.c_str());
+
             child->SetAttribute("TargetConnector", "X2X2");
             baseElem->InsertEndChild(child);
             parent->InsertEndChild(baseElem);

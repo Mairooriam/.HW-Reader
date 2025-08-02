@@ -28,3 +28,7 @@ AllowShortCaseLabelsOnASingleLine: true
 IndentCaseLabels: true
 ContinuationIndentWidth: 8
 AlignAfterOpenBracket: DontAlign
+BinPackParameters: false
+BinPackArguments: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllArgumentsOnNextLine: false

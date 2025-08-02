@@ -59,51 +59,51 @@ namespace HwTool {
         oss << "graph TD\n";
         
         // Find the CPU (root)
-        const V2::ModuleCPU* cpu = nullptr;
-        std::string cpuName;
-        for (const auto& [name, variant] : m) {
-            if (std::holds_alternative<V2::ModuleCPU>(variant)) {
-                cpu = &std::get<V2::ModuleCPU>(variant);
-                cpuName = name;
-                break;
-            }
-        }
+        // const V2::ModuleCPU* cpu = nullptr;
+        // std::string cpuName;
+        // for (const auto& [name, variant] : m) {
+        //     if (std::holds_alternative<V2::ModuleCPU>(variant)) {
+        //         cpu = &std::get<V2::ModuleCPU>(variant);
+        //         cpuName = name;
+        //         break;
+        //     }
+        // }
         
-        if (cpu) {
-            traverseAndOutput(oss, m.at(cpuName));  // Changed from 'variant' to 'm.at(cpuName)'
-        }
+        // if (cpu) {
+        //     traverseAndOutput(oss, m.at(cpuName));  // Changed from 'variant' to 'm.at(cpuName)'
+        // }
         
-        oss << "```";
-        std::ofstream out(m_path);
-        if (out) {
-            out << oss.str();
-            out.close();
-        } else {
-            std::cerr << "Failed to open file for writing: " << m_path << std::endl;
-        }
+        // oss << "```";
+        // std::ofstream out(m_path);
+        // if (out) {
+        //     out << oss.str();
+        //     out.close();
+        // } else {
+        //     std::cerr << "Failed to open file for writing: " << m_path << std::endl;
+        // }
     }
 
     void ModuleMermaidExporter::traverseAndOutput(std::ostringstream& oss, const V2::ModuleVariant& current) {
-        std::visit([&](const auto& module) {
-            oss << "\tsubgraph " << module.name << "sub" << "[" << module.name << "]\n";
-            oss << "\t" << module.name << "\n";
+        // std::visit([&](const auto& module) {
+        //     oss << "\tsubgraph " << module.name << "sub" << "[" << module.name << "]\n";
+        //     oss << "\t" << module.name << "\n";
             
-            if constexpr (std::is_same_v<std::decay_t<decltype(module)>, V2::ModuleIO>) {
-                oss << "\t" << module.tb << "\n";
-            }
-            oss << "\t" << module.base << "\n";
-            oss << "end\n";
+        //     if constexpr (std::is_same_v<std::decay_t<decltype(module)>, V2::ModuleIO>) {
+        //         oss << "\t" << module.tb << "\n";
+        //     }
+        //     oss << "\t" << module.base << "\n";
+        //     oss << "end\n";
             
-            if (module.next) {
-                // Get the next module from the variant pointer
-                std::visit([&](const auto& nextModule) {  // Removed extra nested visit
-                    oss << module.name << "sub --> " << nextModule.name << "sub\n";
+        //     if (module.next) {
+        //         // Get the next module from the variant pointer
+        //         std::visit([&](const auto& nextModule) {  // Removed extra nested visit
+        //             oss << module.name << "sub --> " << nextModule.name << "sub\n";
                     
-                    // Recursively process the next module directly
-                    traverseAndOutput(oss, *module.next);  // Changed from allModules lookup to direct recursion
-                }, *module.next);
-            }
-        }, current);
+        //             // Recursively process the next module directly
+        //             traverseAndOutput(oss, *module.next);  // Changed from allModules lookup to direct recursion
+        //         }, *module.next);
+        //     }
+        // }, current);
     }
 
 

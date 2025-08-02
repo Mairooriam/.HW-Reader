@@ -43,13 +43,33 @@ private:
     
 };
     namespace V2 {
+        
+        struct ValidationError {
+            std::string message;
+            std::string moduleName;
+            std::string elementType;
+        };
+        
+        template<typename T>
+        struct ParseResult {
+            std::optional<T> value;
+            std::vector<ValidationError> errors;
+            
+            bool isValid() const { return value.has_value() && errors.empty(); }
+            bool hasValue() const { return value.has_value(); }
+            bool hasErrors() const { return !errors.empty(); }
+        };
+
         struct ParsedType {
             enum class Kind { Base, Bus, IO, CPU, Unknown } kind;
             std::variant<V2::BaseType, V2::BusModuleType, V2::IoCardType, V2::CpuType> value;
         };
 
-        inline ParsedType parseModuleType(const std::string& typeStr) {
-            std::string normalized  = typeStr;
+        inline static ParsedType parseModuleType(const tinyxml2::XMLElement* module) {
+            std::string normalized = module->Attribute("Type") ?: "";
+            if (normalized.empty())
+                assert(false && "Invalid module. doesn't have type");
+            
             std::replace(normalized.begin(), normalized.end(), '-', '_');
             using namespace HwTool::V2;
             if (auto io = magic_enum::enum_cast<IoCardType>(normalized); io.has_value()) {
@@ -66,22 +86,24 @@ private:
             return {ParsedType::Kind::Unknown, IoCardType::ERROR}; 
         }
 
-        static std::tuple<std::string, std::string, std::string>
-        extractModuleNameTypeVersion(const tinyxml2::XMLElement* moduleElem); 
+
+
 
         class ModuleXmlImporter
         {
         public:
             ModuleXmlImporter(const std::filesystem::path& path);
             ~ModuleXmlImporter();
-            const ModuleMap& mapModules(); // TODO: Error hanlding
+            ModuleMap mapModules(); // TODO: Error hanlding
             bool valid() { return m_status == ImportStatus::OK;}
             ImportStatus getStatus(){ return m_status; }
-            
+
 
 
 
         private:
+            V2::ModuleIO parseIO(tinyxml2::XMLElement* io);
+            ParseResult<V2::ModuleCPU> parseCPU(tinyxml2::XMLElement* io);
             tinyxml2::XMLDocument m_doc;
             tinyxml2::XMLElement* m_hw;
             V2::ModuleMap m_modules;

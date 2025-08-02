@@ -2,18 +2,18 @@
 namespace HwTool {
     HardwareBuilder::HardwareBuilder() {}
     namespace V2 {
-        V2::ModuleIO V2::HardwareBuilder::createModuleIoCard(const std::string &name,
+        ModuleIO V2::HardwareBuilder::createModuleIoCard(const std::string &name,
                 IoCardType type, const std::string &version, const std::string &tbName,
                 const std::string &bmName) {
-            return V2::ModuleIO(name, type, version, tbName, bmName);
+            return ModuleIO(name, type, version, tbName, bmName);
         }
-        V2::ModuleCPU HardwareBuilder::createModuleCpu(const std::string &name, CpuType type,
+        ModuleCPU HardwareBuilder::createModuleCpu(const std::string &name, CpuType type,
                 const std::string &bmName, const std::string &version) {
-            return V2::ModuleCPU(name, type, version, bmName);
+            return ModuleCPU(name, type, version, bmName);
         }
-        V2::ModuleBUS HardwareBuilder::createModuleBus(const std::string &name, BusModuleType type,
+        ModuleBUS HardwareBuilder::createModuleBus(const std::string &name, BusModuleType type,
                 const std::string &version, const std::string &bmName, int nodeID) {
-            return V2::ModuleBUS(name, type, version, bmName, nodeID);
+            return ModuleBUS(name, type, version, bmName, nodeID);
         }
         HardwareBuilder::HardwareBuilder() {}
         HardwareBuilder::~HardwareBuilder() {}

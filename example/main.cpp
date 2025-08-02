@@ -10,37 +10,43 @@
 using namespace HwTool;
 int main(int argc, char const *argv[])
 {
-        V2::ModuleXmlImporter impr("hardware.hw");
-        auto testi = impr.mapModules();
-
-
-        
-        V2::ModuleXmlExporter expr;
-        //TODO: before continuing maybe implement mermaid?
-        // or atleast the CPU linkin part 
-        expr.serialize(testi, "Test.hw");
-        V2::ModuleMap moduleCache;
-
-        ModuleMermaidExporter exprm("testng.md");
-        exprm.serialize(testi);
-
-
-        // Create modules
+        // V2::ModuleXmlImporter impr("hardware.hw");
+        // auto testi = impr.mapModules();
         V2::HardwareBuilder hwb;
-        // Create 4 IO cards using the builder
-        auto cpu = V2::ModuleCPU("Cpu_test", V2::CpuType::X20CP0484_1, "1.8.1.0", "X20BB52");
-        auto hub = hwb.createModuleBus("AF999", V2::BusModuleType::X20BX0083, "2.16.1.0","X20BB80_1", 1);
-        auto io1 = hwb.createModuleIoCard("AF100", V2::IoCardType::X20DO9322, "1.0", "X20TB12_1", "X20BM11_1");
-        auto io2 = hwb.createModuleIoCard("AF200", V2::IoCardType::X20DI9372, "1.0", "X20TB12_2", "X20BM11_2");
-        auto io3 = hwb.createModuleIoCard("AF300", V2::IoCardType::X20AI4622, "1.0", "X20TB12_3", "X20BM11_3");
-        auto io4 = hwb.createModuleIoCard("AF400", V2::IoCardType::X20AI4632, "1.0", "X20TB12_4", "X20BM11_4");
+        auto m1 = hwb.createModuleIoCard("AF100", V2::IoCardType::X20AI4622, "1.1.0.0", "TBa", "BMa");
+        auto m2 = hwb.createModuleIoCard("AF101", V2::IoCardType::X20AI4622, "1.1.0.0", "TBb", "BMb");
+        V2::ModuleXmlImporter imp("hardware.hw");
+        auto mod = imp.mapModules();
+        V2::ModuleXmlExporter exp;
+        exp.serialize(mod, "new.hw");
+        //m1.next = std::make_unique<V2::ModuleVariant>(m2);
+        
+        // V2::ModuleXmlExporter expr;
+        // //TODO: before continuing maybe implement mermaid?
+        // // or atleast the CPU linkin part 
+        // expr.serialize(testi, "Test.hw");
+        // V2::ModuleMap moduleCache;
 
-        V2::Connector conc;
-        conc.name = "IF2";
-        conc.parameters["ConfigurationID"] = "Mir_Mir_config1";
-        cpu.connector = conc;
-        cpu.parameters["ConfigurationID"] = "test_Config1";
-        cpu.group = "FileDevice1";
+        // ModuleMermaidExporter exprm("testng.md");
+        // exprm.serialize(testi);
+
+
+        // // Create modules
+        // V2::HardwareBuilder hwb;
+        // // Create 4 IO cards using the builder
+        // auto cpu = V2::ModuleCPU("Cpu_test", V2::CpuType::X20CP0484_1, "1.8.1.0", "X20BB52");
+        // auto hub = hwb.createModuleBus("AF999", V2::BusModuleType::X20BX0083, "2.16.1.0","X20BB80_1", 1);
+        // auto io1 = hwb.createModuleIoCard("AF100", V2::IoCardType::X20DO9322, "1.0", "X20TB12_1", "X20BM11_1");
+        // auto io2 = hwb.createModuleIoCard("AF200", V2::IoCardType::X20DI9372, "1.0", "X20TB12_2", "X20BM11_2");
+        // auto io3 = hwb.createModuleIoCard("AF300", V2::IoCardType::X20AI4622, "1.0", "X20TB12_3", "X20BM11_3");
+        // auto io4 = hwb.createModuleIoCard("AF400", V2::IoCardType::X20AI4632, "1.0", "X20TB12_4", "X20BM11_4");
+
+        // V2::Connector conc;
+        // conc.name = "IF2";
+        // conc.parameters["ConfigurationID"] = "Mir_Mir_config1";
+        // cpu.connector = conc;
+        // cpu.parameters["ConfigurationID"] = "test_Config1";
+        // cpu.group = "FileDevice1";
 
         // hub->next = io1;
         // io1->next = io2;
@@ -57,8 +63,8 @@ int main(int argc, char const *argv[])
         // moduleCache[io3->name] = io3;
         // moduleCache[io4->name] = io4;
 
-        V2::ModuleXmlExporter exp;
-        exp.serialize(moduleCache, "testing.hw");
+        // V2::ModuleXmlExporter exp;
+        // exp.serialize(moduleCache, "testing.hw");
 
         // Access and use
         // for (const auto& [name, variant] : moduleCache) {

@@ -131,11 +131,12 @@ namespace HwTool {
             V2::Connector connector;
             std::unordered_map<std::string, std::string> parameters;
             std::string group;
-            ModuleVariant* next;
+            std::string nextModuleName;
+            
             ModuleCPU() = default;
             ModuleCPU(std::string n, CpuType t, std::string v, std::string b,
                 V2::Connector conn = {}, std::unordered_map<std::string, std::string> params = {},
-                std::string g = {}, ModuleVariant* nxt = nullptr)
+                std::string g = {}, std::string nxt = "")
             : name(std::move(n)),
             type(t),
             version(std::move(v)),
@@ -143,9 +144,8 @@ namespace HwTool {
             connector(std::move(conn)),
             parameters(std::move(params)),
             group(std::move(g)),
-            next(std::move(nxt)) {}
+            nextModuleName(std::move(nxt)) {}
         };
-
 
         // TODO: add also Powersupply? maybe own struct?
         struct ModuleBUS {
@@ -154,18 +154,17 @@ namespace HwTool {
             std::string version;
             std::string base;
             int nodeNumber;
-            ModuleVariant* previous;
-            ModuleVariant* next;
+            std::string nextModuleName;
+            
             ModuleBUS() = default;
             ModuleBUS(std::string n, BusModuleType t, std::string v, std::string b, int nodeNum,
-                    ModuleVariant* prev = nullptr, ModuleVariant* nxt = nullptr)
+                    std::string nxt = "")
                 : name(std::move(n)),
                 type(t),
                 version(std::move(v)),
                 base(std::move(b)),
                 nodeNumber(nodeNum),
-                previous(std::move(prev)),
-                next(std::move(nxt)) {}
+                nextModuleName(std::move(nxt)) {}
         };
 
         struct ModuleIO {
@@ -174,19 +173,17 @@ namespace HwTool {
             std::string version;
             std::string tb;
             std::string base;
-            ModuleVariant* previous;
-            ModuleVariant* next;
+            std::string nextModuleName;
+            
             ModuleIO() = default;
             ModuleIO(std::string n, IoCardType t, std::string v, std::string tb_, std::string base_, 
-                     ModuleVariant* prev = nullptr,
-                     ModuleVariant* nxt = nullptr)
+                    std::string nxt = "")
                 : name(std::move(n)),
-                  type(t),
-                  version(std::move(v)),
-                  tb(std::move(tb_)),
-                  base(std::move(base_)),
-                  previous(std::move(prev)),
-                  next(std::move(nxt)) {}
+                type(t),
+                version(std::move(v)),
+                tb(std::move(tb_)),
+                base(std::move(base_)),
+                nextModuleName(std::move(nxt)) {}
         };
 
         namespace utils {}

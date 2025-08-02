@@ -46,183 +46,200 @@ namespace HwTool {
         }
         ModuleXmlImporter::~ModuleXmlImporter() {}
 
-        // TODO: split into smaller pieces? maybe?
-        const ModuleMap& ModuleXmlImporter::mapModules() {
-            HardwareBuilder hwb;
-            ModuleVariant parsedModule;
-            std::vector<std::shared_ptr<HwTool::V2::ModuleIO>> parsedIO;  // maybe delete
-            std::unordered_map<std::string, std::string> cachedBaseToModule;
-            std::unordered_map<std::string, std::string> baseLinkMap;
+        // TODO: add error handling for each branch
+        ModuleMap ModuleXmlImporter::mapModules() {
+            ModuleMap modules;
+            std::unordered_map<std::string, std::string> link;
 
-            for (auto moduleElem = m_hw->FirstChildElement("Module"); moduleElem;) {
-                auto* nextElem = moduleElem->NextSiblingElement("Module");
-                auto [name, type, version] = extractModuleNameTypeVersion(moduleElem->ToElement());
-                auto parsed = parseModuleType(type);
-                switch (parsed.kind) {
-                    case ParsedType::Kind::IO: {
-                        std::string tb;
-                        std::string bm;
-                        printf("IO");
-                        // Use std::get<IoCardType>(parsed.value)
-                        for (auto childElem = moduleElem->FirstChildElement(); childElem;
-                                childElem = childElem->NextSiblingElement()) {
-                            std::string childName = childElem->Name();
-                            if (childName == "Connection") {
-                                // TODO: Ignoring connectors -> test if causes problems anywhere
-                                const char* connectorAttr = childElem->Attribute("Connector");
-                                const char* targetModuleAttr = childElem->Attribute("TargetModule");
+            for (auto moduleElem = m_hw->FirstChildElement("Module"); moduleElem;
+                    moduleElem = moduleElem->NextSiblingElement("Module")) {
+                ParsedType type = parseModuleType(moduleElem);
 
-                                if (targetModuleAttr && connectorAttr &&
-                                        std::string(connectorAttr) == "SS1") {
-                                    tb = targetModuleAttr;
-                                } else if (targetModuleAttr && connectorAttr &&
-                                           std::string(connectorAttr) == "SL") {
-                                    bm = targetModuleAttr;
-                                } else {
-                                    assert(false && "shouldnt probably happen :)");
-                                }
-                            }
-                        }
-                        // parsedIO.push_back(hwb.createModuleIoCard(name,
-                        // std::get<IoCardType>(parsed.value), "1.1.0.0", tb, bm));
-                        m_modules[name] = hwb.createModuleIoCard(
-                                name, std::get<IoCardType>(parsed.value), "1.1.0.0", tb, bm);
-                        cachedBaseToModule[bm] = name;
-                        m_hw->DeleteChild(moduleElem);
-                        break;
+                if (type.kind == ParsedType::Kind::IO) {
+                    auto io = parseIO(moduleElem);
+                    modules[io.name] = std::move(io);
+                } else if (type.kind == ParsedType::Kind::CPU) {
+                    auto cpu = parseCPU(moduleElem);
+
+                    for (const auto& error : cpu.errors) {
+                        std::cerr << "CPU Parse Error: " << error.message 
+                                << " (Module: " << error.moduleName << ")" << std::endl;
                     }
-                    case ParsedType::Kind::Bus:
-                        printf("bus");
-                        // Use std::get<BusModuleType>(parsed.value)
-                        break;
-                    case ParsedType::Kind::Base:
-                        printf("base");
-                        for (auto childElem = moduleElem->FirstChildElement(); childElem;
-                                childElem = childElem->NextSiblingElement()) {
-                            std::string childName = childElem->Name();
-                            if (childName == "Connection") {
-                                // TODO: Ignoring connectors -> test if causes problems anywhere
-                                const char* connectorAttr = childElem->Attribute("Connector");
-                                const char* targetModuleAttr = childElem->Attribute("TargetModule");
-
-                                if (targetModuleAttr && connectorAttr &&
-                                        std::string(connectorAttr) == "X2X1") {
-                                    baseLinkMap[targetModuleAttr] = name;
-                                } else {
-                                    // TODO: in this it will happen on anything other than BM11
-                                    assert(false && "shouldnt probably happen :)");
-                                }
-                            }
-                        }
-
-                        break;
-                    case ParsedType::Kind::CPU: {
-                        printf("Cpu\n");
-                        std::string baseName;
-                        V2::Connector connector;
-                        std::unordered_map<std::string, std::string> parameters;
-                        std::string group;
-
-                        for (auto childElem = moduleElem->FirstChildElement(); childElem;
-                                childElem = childElem->NextSiblingElement()) {
-                            std::string childName = childElem->Name();
-                            if (childName == "Connection") {
-                                const char* connectorAttr = childElem->Attribute("Connector");
-                                const char* targetModuleAttr = childElem->Attribute("TargetModule");
-                                if (targetModuleAttr && connectorAttr &&
-                                        std::string(connectorAttr) == "SL") {
-                                    baseName = targetModuleAttr;
-                                }
-                            } else if (childName == "Connector") {
-                                const char* connName = childElem->Attribute("Name");
-                                if (connName)
-                                    connector.name = connName;
-                                for (auto paramElem = childElem->FirstChildElement("Parameter");
-                                        paramElem;
-                                        paramElem = paramElem->NextSiblingElement("Parameter")) {
-                                    const char* id = paramElem->Attribute("ID");
-                                    const char* val = paramElem->Attribute("Value");
-                                    if (id && val)
-                                        connector.parameters[id] = val;
-                                }
-                            } else if (childName == "Parameter") {
-                                const char* id = childElem->Attribute("ID");
-                                const char* val = childElem->Attribute("Value");
-                                if (id && val)
-                                    parameters[id] = val;
-                            } else if (childName == "Group") {
-                                const char* id = childElem->Attribute("ID");
-                                if (id)
-                                    group = id;
-                            }
-                        }
-
-                        auto cpu = hwb.createModuleCpu(
-                                name, std::get<CpuType>(parsed.value), baseName, version);
-                        cpu.connector = connector;
-                        cpu.group = group;
-                        cpu.parameters = parameters;
-                        m_modules[name] = cpu;
-                        cachedBaseToModule[baseName] = name;
-                        break;
+                    
+                    if (cpu.hasValue()) {
+                        modules[cpu.value->name] = std::move(*cpu.value);
+                    } else {
+                        std::cerr << "Failed to parse CPU module - skipping" << std::endl;
                     }
-                    default: printf("[N]"); break;
+                    
+                    printf("cpu");
+                } else if (type.kind == ParsedType::Kind::Base)
+                {
+                    printf("hello");
+                    const char* name = moduleElem->Attribute("Name");
+                    const char* target = moduleElem->FirstChildElement()->Attribute("TargetModule");
+
+                    if (name && target)
+                    {
+                        link[name] = target;
+                    }
+                    
+
+                    
+                }else if (type.kind == ParsedType::Kind::Bus)
+                {
+                    assert(false && "Not implemented yeat");
+                }else {
+                    printf("not implemented yeat");
                 }
-                moduleElem = nextElem;
             }
 
-            for (const auto& [name, moduleVariant] : m_modules) {
-                if (std::holds_alternative<V2::ModuleIO>(moduleVariant)) {
-                    auto& m = std::get<V2::ModuleIO>(m_modules.at(name));
-                    std::string targetBase = baseLinkMap[m.base];
-                    auto nextIt = cachedBaseToModule.find(targetBase);
-                    if (nextIt != cachedBaseToModule.end()) {
-                        const std::string& nextName = nextIt->second;
-                        auto resIt = m_modules.find(nextName);
-                        if (resIt != m_modules.end() &&
-                                std::holds_alternative<V2::ModuleIO>(
-                                        resIt->second)) {
-                            auto& nextIO = std::get<V2::ModuleIO>(resIt->second);
-                            m.next = &(resIt->second);
-                            nextIO.previous = &(m_modules.at(name));
+
+            for (auto &&[k,v] : modules)
+            {
+                if (std::holds_alternative<ModuleIO>(v))
+                {
+                    auto& io = std::get<ModuleIO>(v);
+                    std::string target = link[io.base];
+                    io.nextModuleName = target;
+                    
+                }else if (std::holds_alternative<ModuleCPU>(v))
+                {
+
+                }else if (std::holds_alternative<ModuleBUS>(v))
+                {
+                    assert(false && "not implemented");
+                }else
+                {
+                    assert(false && "not implemented");
+                }
+                
+                
+                
+                
+            }
+            
+
+            return modules;
+        }
+
+        V2::ModuleIO ModuleXmlImporter::parseIO(tinyxml2::XMLElement* io) {
+            return V2::ModuleIO(io->Attribute("Name"),
+                    magic_enum::enum_cast<IoCardType>(io->Attribute("Type"))
+                            .value_or(IoCardType::ERROR),
+                    io->Attribute("Version"),
+                    io->FirstChildElement()->Attribute("TargetModule"),
+                    io->LastChildElement()->Attribute("TargetModule"));
+        }
+
+        ParseResult<V2::ModuleCPU> ModuleXmlImporter::parseCPU(tinyxml2::XMLElement* io) {
+
+            ParseResult<V2::ModuleCPU> result;
+            
+            // Validate required attributes
+            const char* nameAttr = io->Attribute("Name");
+            std::string typeAttr = io->Attribute("Type");
+            const char* versionAttr = io->Attribute("Version");
+            
+            if (!nameAttr) {
+                result.errors.push_back({"Missing required attribute 'Name'", "", "CPU"});
+                return result;
+            }
+            
+            std::string name = nameAttr;
+            
+            if (typeAttr.empty()) {
+                result.errors.push_back({"Missing required attribute 'Type'", name, "CPU"});
+            }
+            
+            if (!versionAttr) {
+                result.errors.push_back({"Missing required attribute 'Version'", name, "CPU"});
+            }
+            
+            // Parse type with validation
+            std::replace(typeAttr.begin(), typeAttr.end(), '-', '_');
+            auto cpuType = magic_enum::enum_cast<CpuType>(typeAttr).value_or(CpuType::ERROR);
+            if (cpuType == CpuType::ERROR && typeAttr.empty()) {
+                result.errors.push_back({"Invalid CPU type: " + std::string(typeAttr), name, "CPU"});
+            }
+            
+            std::string version = versionAttr ?: "";
+            std::string base = "";
+            V2::Connector connector;
+            std::unordered_map<std::string, std::string> parameters;
+            std::string group = "";
+            std::string nextModuleName = "";
+            
+            // Parse child elements
+            for (auto childElem = io->FirstChildElement(); childElem;
+                childElem = childElem->NextSiblingElement()) {
+                
+                std::string childName = childElem->Name();
+                
+                if (childName == "Connection") {
+                    const char* targetModule = childElem->Attribute("TargetModule");
+                    if (targetModule) {
+                        base = targetModule;  
+                    } else {
+                        result.errors.push_back({"Connection element missing TargetModule attribute", name, "CPU"});
+                    }
+                    
+                } else if (childName == "Connector") {
+                    connector.name = childElem->Attribute("Name") ?: "";
+                    
+                    // Parse connector parameters
+                    for (auto paramElem = childElem->FirstChildElement("Parameter"); paramElem;
+                        paramElem = paramElem->NextSiblingElement("Parameter")) {
+                        
+                        const char* id = paramElem->Attribute("ID");
+                        const char* value = paramElem->Attribute("Value");
+                        if (id && value) {
+                            connector.parameters[id] = value;
+                        } else {
+                            result.errors.push_back({"Connector Parameter missing ID or Value", name, "CPU"});
                         }
                     }
-                    std::cout << "IO: " << m.name << "\n";
-                } else if (std::holds_alternative<V2::ModuleBUS>(moduleVariant)) {
-                    auto m = std::get<V2::ModuleBUS>(moduleVariant);
-                    // Handle BUS module - convert to pointer to variant
-                    std::cout << "BUS: " << m.name << "\n";
-                } else if (std::holds_alternative<V2::ModuleCPU>(moduleVariant)) {
-                    auto& m = std::get<V2::ModuleCPU>(m_modules.at(name));
-                    std::string targetBase = baseLinkMap[m.base];
-                    auto nextIt = cachedBaseToModule.find(targetBase);
-                    if (nextIt != cachedBaseToModule.end()) {
-                        const std::string& nextName = nextIt->second;
-                        auto resIt = m_modules.find(nextName);
-                        if (resIt != m_modules.end()) {
-                            // Cast to ModuleVariant* by taking address of the variant in the map
-                            m.next = &(resIt->second); 
-                            
-                            // For the reverse link, you need to handle different types
-                            std::visit([&](auto& targetModule) {
-                                using T = std::decay_t<decltype(targetModule)>;
-                                if constexpr (std::is_same_v<T, V2::ModuleIO>) {
-                                    targetModule.previous = &(m_modules.at(name));
-                                } else if constexpr (std::is_same_v<T, V2::ModuleBUS>) {
-                                    targetModule.previous = &(m_modules.at(name));
-                                }
-                            }, resIt->second);
-                        }
+                    
+                } else if (childName == "Parameter") {
+                    const char* id = childElem->Attribute("ID");
+                    const char* value = childElem->Attribute("Value");
+                    if (id && value) {
+                        parameters[id] = value;
+                    } else {
+                        result.errors.push_back({"Parameter missing ID or Value", name, "CPU"});
                     }
-                    std::cout << "CPU: " << m.name << "\n";
+                    
+                } else if (childName == "Group") {
+                    const char* groupId = childElem->Attribute("ID");
+                    if (groupId) {
+                        group = groupId;
+                    } else {
+                        result.errors.push_back({"Group element missing ID attribute", name, "CPU"});
+                    }
                 } else {
-                    std::cout << "Unknown module type for: " << name << "\n";
+                    result.errors.push_back({"Unexpected child element: " + childName, name, "CPU"});
                 }
             }
-
-            std::cout << "hehehe" << "\n";
-            return m_modules;
-        };
+            
+            if (base.empty()) {
+                result.errors.push_back({"CPU module has no base connection", name, "CPU"});
+            }
+        
+            if (result.errors.empty() || cpuType != CpuType::ERROR) {
+                result.value = V2::ModuleCPU(
+                    name,
+                    cpuType, 
+                    version,
+                    base,
+                    connector,
+                    parameters,
+                    group,
+                    nextModuleName
+                );
+            }
+            
+            return result;
+        }
 
         // TODO: add error handling
         std::tuple<std::string, std::string, std::string> extractModuleNameTypeVersion(
