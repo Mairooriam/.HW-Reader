@@ -17,11 +17,16 @@ namespace HwTool {
 
     class Hw {
     private:
-    std::unordered_map<std::string, Module> m_modules;
-    std::unordered_map<std::string, Module> getModules() const {
+    ModuleMap m_modules;
+    std::unordered_map<std::string, std::string> m_cacheBaseLink;
+    std::unordered_map<std::string, Module> m_cacheModules;
+    std::unordered_map<std::string, Module> m_cacheBase;
+    std::unordered_map<std::string, Module> m_cacheCard;
+    
+    ModuleMap getModules() const {
         return m_modules;
     };
-    void setModules(const std::unordered_map<std::string, Module>& modules) {
+    void setModules(const ModuleMap& modules) {
         m_modules = modules;
         resolveLinking();
     }
@@ -40,8 +45,8 @@ namespace HwTool {
     std::string getModuleWithConnectionTarget(const std::string& target);
     std::string getModuleWithConnectionSource(const std::string& module);
     std::set<ConnectorType> getModuleConnectors(const Module& module);
-    std::string getRootBase(const std::unordered_map<std::string, Module>& modules);
-
+    std::string getRootBase(const ModuleMap& modules);
+    std::string getBaseWithoutTarget(const ModuleMap& modules);
     public:
     
     Hw(/* args */);
@@ -60,8 +65,8 @@ namespace HwTool {
 
         // not implemented
         void render(IRenderer& renderer) const;
-        std::unordered_map<std::string, Module> importCSV(const std::filesystem::path& path, const std::string& version = "");
-        void combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& target);
+        ModuleMap importCSV(const std::filesystem::path& path, const std::string& version = "");
+        void combineToExisting(ModuleMap& modules, const std::string& target);
 
         void undo();
         void redo();

@@ -1,5 +1,6 @@
 set(SOURCES
     src/HwTool.cpp
+    src/types.cpp
     src/HardwareBuilder.cpp
     src/DataAccess/ModuleXmlExporter.cpp
     src/DataAccess/ModuleXmlImporter.cpp
@@ -7,6 +8,7 @@ set(SOURCES
     src/DataAccess/ModuleCsvImporter.cpp
     src/commands/Commands.cpp
     src/Renderer/ConsoleRenderer.cpp
+
 
 )
 set(EXTERNAL_INCLUDES

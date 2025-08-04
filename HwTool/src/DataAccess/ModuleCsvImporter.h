@@ -10,7 +10,7 @@ namespace HwTool {
         std::set<std::string> m_namesInUse;
     public:
         ModuleCsvImporter(const std::filesystem::path& path, const std::set<std::string>& modules);
-        std::unordered_map<std::string, Module> getModules() override;
+        ModuleMap getModules() override;
 
     };
 }

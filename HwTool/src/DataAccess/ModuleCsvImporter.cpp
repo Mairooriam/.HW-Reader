@@ -14,11 +14,11 @@ namespace HwTool {
         this->ValidatePath(path, m_errors);
     }
 
-    std::unordered_map<std::string, Module> ModuleCsvImporter::getModules() {
+    ModuleMap ModuleCsvImporter::getModules() {
         io::CSVReader<3> in(m_path.string().c_str());
         in.read_header(io::ignore_extra_column, "Location", "Name", "Type");
         std::string location, name, type;
-        std::unordered_map<std::string, Module> modules;
+        ModuleMap modules;
         HardwareBuilder hwb;
         std::string previousBase;
         while (in.read_row(location, name, type)) {

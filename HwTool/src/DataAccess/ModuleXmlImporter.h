@@ -28,7 +28,7 @@ namespace HwTool
 
     bool valid() { return m_status == ImportStatus::OK;}
     std::vector<std::string> getErrors();
-    std::unordered_map<std::string, Module> getModules() { return m_modules;}
+    ModuleMap getModules() { return m_modules;}
     void printErrors();
 
     // In the future, you can add:
@@ -38,7 +38,7 @@ private:
     tinyxml2::XMLElement* m_hw;
     ImportStatus m_status;
     std::vector<std::string> m_errors;
-    std::unordered_map<std::string, Module> m_modules;
+    ModuleMap m_modules;
     
 };
 }

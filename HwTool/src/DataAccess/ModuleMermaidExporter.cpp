@@ -10,7 +10,7 @@
 
 namespace HwTool {
 
-    void ModuleMermaidExporter::serialize(const std::unordered_map<std::string, Module>& modules) {
+    void ModuleMermaidExporter::serialize(const ModuleMap& modules) {
         std::ostringstream oss;
         oss << "```mermaid\n";
         oss << "graph TD\n";

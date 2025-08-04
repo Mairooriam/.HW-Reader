@@ -3,6 +3,7 @@
 #include <format>
 int main(int argc, char const *argv[])
 {
+    using namespace HwTool;
     std::cout << "Hello World" << "\n";
     HwTool::Hw hw;
     // hw.importHW("hardware.hw");
@@ -64,12 +65,21 @@ int main(int argc, char const *argv[])
     }
     
     auto modulesCsv = hw.importCSV("HW_version-1.0.0.csv");
-    hw.combineToExisting(modulesCsv, validcards5[2]);
+    hw.combineToExisting(modulesCsv, validcards5[3]);
     hw.exportMermaid("HW_version-1.0.0.md");
     hw.exportHW("Hw_version1.0.0.0.hw");
     printf("Example done");
 
-    
+
+    for (size_t i = 0; i < validcards5.size(); ++i) {
+        std::cout << std::format("[{:>2}] - {}\n", i, validcards5[i]);
+        hw.importHW("hardware.hw");
+        auto modulesCsv = hw.importCSV("HW_version-1.0.0.csv");
+        hw.combineToExisting(modulesCsv, validcards5[i]);
+        hw.exportMermaid("HW_version-1.0.0_" + std::to_string(i) + ".md");
+        hw.exportHW("Hw_version1.0.0.0_" + std::to_string(i) + ".hw");
+    }
+    printf("Example done\n");
 
 
     return 0;

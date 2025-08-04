@@ -31,6 +31,7 @@ namespace HwTool {
         }
     }
 
+
     std::string Hw::getCardBase(const std::string& target) {
         // TODO: add testing? just got up and runnig
         // Test some edge cases
@@ -92,14 +93,24 @@ namespace HwTool {
         return res;
     }
 
-    std::string Hw::getRootBase(const std::unordered_map<std::string, Module>& modules) {
+    std::string Hw::getRootBase(const ModuleMap& modules) {
         std::vector<std::string> emptyTargets;
         for (auto& [modName, module] : modules) {
-            for (auto& connection : module.connections) {
-                if (connection.targetModuleName.empty()) {
+            if (Utils::isBase(module))
+            {
+                if (!module.connections.empty())
+                {
+                    for (auto& connection : module.connections) {
+                        if (connection.targetModuleName.empty()) {
+                            emptyTargets.push_back(modName);
+                        }
+                    }
+                }else {
                     emptyTargets.push_back(modName);
                 }
+                
             }
+            
         }
        
         
@@ -112,6 +123,41 @@ namespace HwTool {
         
         if (emptyTargets.size() == 1)
             return emptyTargets[0];
+
+        return std::string();
+    }
+
+    std::string Hw::getBaseWithoutTarget(const std::unordered_map<std::string,Module>& modules)
+    {
+        std::set<std::string> baseNames;
+        std::set<std::string> pointedBases;
+
+        // Collect all base module names
+        for (const auto& [name, module] : modules) {
+            if (Utils::isBase(module)) {
+                baseNames.insert(name);
+            }
+        }
+
+        // Collect all targetModuleNames from all connections
+        for (const auto& [name, module] : modules) {
+            if (Utils::isBase(module))
+            {
+                for (const auto& con : module.connections) {
+                    if (!con.targetModuleName.empty()) {
+                        pointedBases.insert(con.targetModuleName);
+                    }
+                }
+            }
+            
+        }
+
+        // Find base that is not pointed by anything
+        for (const auto& base : baseNames) {
+            if (!pointedBases.contains(base)) {
+                return base;
+            }
+        }
 
         return std::string();
     }
@@ -241,35 +287,40 @@ namespace HwTool {
     }
 
     
-    std::unordered_map<std::string, Module> Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
+    ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
         auto keys = m_modules | std::views::keys;
         auto currentModules = std::set<std::string>(keys.begin(), keys.end());
         ModuleCsvImporter csvImporter(path,currentModules);
         if (csvImporter.valid())
             return csvImporter.getModules();
    
-        return std::unordered_map<std::string, Module>();
+        return ModuleMap();
     }
 
-    void Hw::combineToExisting(std::unordered_map<std::string, Module>& modules, const std::string& target) {
+    void Hw::combineToExisting(ModuleMap& modules, const std::string& target) {
         // TODO: bug when adding modules in batch inbetween existing HW.
         // ->> re linkin of old modules is not implmeented correctly
         // So only linking to "end of" X20BM11 works. 
         // Need to implement propagateTargetUpdateUpTheChain();
+
+
         auto rootBase = getRootBase(modules);
+        auto testing = Utils::getRootBase(modules);
         auto rootBaseTarget = getRootBase(m_modules);
-        auto targetBase = getCardBase(target);
-        auto targetBaseSource = getModuleWithConnectionSource(targetBase);
+
+        auto targetBase = Utils::getCardBase(target, m_modules);
+        auto targetBaseSource = Utils::getBaseSource(targetBase, m_modules); 
         modules[rootBase].connections[0].targetModuleName = targetBase;
         for (const auto& [name, module] : modules) {
             m_modules[name] = module;
         }
-        auto rootBaseSource = getModuleWithConnectionSource(rootBase);
+        auto rootBaseSource = Utils::getBaseSource(rootBase, m_modules); //BM11f
+        auto importEnd = getBaseWithoutTarget(modules);
         
         // if target doesnt have source skip changing the targets of the previous cards. since they dont exist
         if (!targetBaseSource.empty()){
-            m_modules[rootBaseSource].connections[0].targetModuleName = targetBaseSource;
-            m_modules[targetBaseSource].connections[0].targetModuleName = rootBase;
+            //m_modules[rootBaseSource].connections[0].targetModuleName = targetBaseSource;
+            m_modules[targetBaseSource].connections[0].targetModuleName = importEnd;
         }
         resolveLinking();
     }

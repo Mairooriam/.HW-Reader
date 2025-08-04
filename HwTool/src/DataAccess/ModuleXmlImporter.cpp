@@ -43,7 +43,7 @@ namespace HwTool {
     ModuleXmlImporter::~ModuleXmlImporter() {}
 
     void ModuleXmlImporter::mapModules() {
-        std::unordered_map<std::string, Module> modules;
+        ModuleMap modules;
             
 
  

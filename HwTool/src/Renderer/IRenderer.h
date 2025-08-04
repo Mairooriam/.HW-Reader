@@ -7,6 +7,6 @@ namespace HwTool {
     class IRenderer {
     public:
         virtual ~IRenderer() = default;
-        virtual void render(const std::unordered_map<std::string, Module>& modules) = 0;
+        virtual void render(const ModuleMap& modules) = 0;
     };
 }

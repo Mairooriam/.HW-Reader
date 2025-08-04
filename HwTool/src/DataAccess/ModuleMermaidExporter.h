@@ -10,7 +10,7 @@ namespace HwTool{
     private:
         std::filesystem::path m_path;
     public:
-        void serialize(const std::unordered_map<std::string, Module>& modules);
+        void serialize(const ModuleMap& modules);
         
         ModuleMermaidExporter(const std::filesystem::path& path);
         ~ModuleMermaidExporter();

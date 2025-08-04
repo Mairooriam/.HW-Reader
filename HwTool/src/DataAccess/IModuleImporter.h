@@ -22,7 +22,7 @@ namespace HwTool {
         std::vector<std::string> m_errors;
     public:
         virtual ~IModuleImporter() = default;
-        virtual std::unordered_map<std::string, Module> getModules()  = 0;
+        virtual ModuleMap getModules()  = 0;
   
         bool valid() const { return m_errors.empty(); }
         std::vector<std::string> getErrors() const { return m_errors; }
