@@ -253,21 +253,20 @@ namespace HwTool {
         m_cmdManager.execute(std::make_unique<deleteCardCommand>(card));
     }
     std::vector<std::string> Hw::getAvailableCards() {
-        assert(!m_addCardBuffer.empty() &&
-               "You must call createCard() before calling getAvailableCards()");
-        std::vector<std::string> res;
-
-        auto connectors = getModuleConnectors(m_addCardBuffer.card);
-        if (connectors.contains(ConnectorType::SL)) {
-            for (const auto& [name, module] : m_modules) {
-                for (const auto& con : module.connections) {
-                    if (con.connector == ConnectorType::SL) {
-                        res.push_back(name);
-                    }
-                }
-            }
-        }
-        return res;
+        // assert(!m_addCardBuffer.empty() &&
+        //        "You must call createCard() before calling getAvailableCards()");
+        // std::vector<std::string> res;
+        // auto connectors = getModuleConnectors(m_addCardBuffer.card);
+        // if (connectors.contains(ConnectorType::SL)) {
+        //     for (const auto& [name, module] : m_modules) {
+        //         for (const auto& con : module.connections) {
+        //             if (con.connector == ConnectorType::SL) {
+        //                 res.push_back(name);
+        //             }
+        //         }
+        //     }
+        // }
+        return Utils::getModulesWithConnector(ConnectorType::SL, m_modules);
     }
 
     void Hw::exportHW(const std::filesystem::path& path) {
@@ -298,28 +297,17 @@ namespace HwTool {
     }
 
     void Hw::combineToExisting(ModuleMap& modules, const std::string& target) {
-        // TODO: bug when adding modules in batch inbetween existing HW.
-        // ->> re linkin of old modules is not implmeented correctly
-        // So only linking to "end of" X20BM11 works. 
-        // Need to implement propagateTargetUpdateUpTheChain();
-
-
-        auto rootBase = getRootBase(modules);
-        auto testing = Utils::getRootBase(modules);
-        auto rootBaseTarget = getRootBase(m_modules);
-
-        auto targetBase = Utils::getCardBase(target, m_modules);
+        auto rootBase = Utils::getRootBase(modules);
+        auto targetBase = Utils::getModuleBase(target, m_modules);
         auto targetBaseSource = Utils::getBaseSource(targetBase, m_modules); 
         modules[rootBase].connections[0].targetModuleName = targetBase;
         for (const auto& [name, module] : modules) {
             m_modules[name] = module;
         }
         auto rootBaseSource = Utils::getBaseSource(rootBase, m_modules); //BM11f
-        auto importEnd = getBaseWithoutTarget(modules);
-        
-        // if target doesnt have source skip changing the targets of the previous cards. since they dont exist
+
+        auto importEnd = Utils::getEndBase(modules);
         if (!targetBaseSource.empty()){
-            //m_modules[rootBaseSource].connections[0].targetModuleName = targetBaseSource;
             m_modules[targetBaseSource].connections[0].targetModuleName = importEnd;
         }
         resolveLinking();

@@ -31,23 +31,52 @@ namespace HwTool::Utils {
         return std::string();
     }
 
-    std::string getCardBase(const Module& c) {
-        if (!isCard(c)) {
-            std::cerr << "[Utils Error] Module '" << c.name << "' is not a card type" << std::endl;
-            assert(false && "getCardBase: Module is not a card type");
-            return std::string();
+    //TODO: For now looping trough all as "sanity check" but remove later
+    std::string getEndBase(const ModuleMap& m) {
+        std::vector<std::string> res;
+        for (const auto &[k,v] : m)
+        {
+            if (!Utils::isValidBase(v))
+                continue;
+            
+            
+            if(Utils::getBaseSource(v, m).empty());
+                res.push_back(v.name);
+
         }
         
-        if (c.connections.size() < 2) {
-            std::cerr << "[Utils Error] Card '" << c.name << "' doesn't have enough connections" << std::endl;
-            assert(false && "getCardBase: Card doesn't have enough connections");
-            return std::string();
-        }
+        assert(res.size() > 1 && "Edge case not handled! GL :)");
         
-        return c.connections[1].targetModuleName;
+        if (res.size() == 0)
+            return std::string();
+
+        return res[0];
     }
 
-    std::string getCardBase(const std::string& b, const ModuleMap& m) {
+    std::string getModuleBase(const Module& c) {
+        bool card = isCard(c);
+        bool cpu = isCpu(c);
+        if (!card && !cpu) {
+            std::cerr << "[Utils Error] Module '" << c.name << "' is not a card type" << std::endl;
+            assert(false && "getModuleBase: Module is not a card or CPU type");
+            return std::string();
+        }
+        
+        if (c.connections.size() < 1 || c.connections.size() > 2) {
+            std::cerr << "[Utils Error] Card '" << c.name << "' must have 1 or 2 connections, but has " << c.connections.size() << std::endl;
+            assert(false && "getModuleBase: Card must have 1 or 2 connections");
+            return std::string();
+        }
+        
+        if (card)
+            return c.connections[1].targetModuleName;
+
+        if (cpu)
+            return c.connections[0].targetModuleName;
+        
+    }
+
+    std::string getModuleBase(const std::string& b, const ModuleMap& m) {
         auto it = m.find(b);
         if (it == m.end()) {
             std::cerr << "[WARNING] getCardBase(string, modulemap) - Couldn't find base from the supplied map" << std::endl;
@@ -55,7 +84,7 @@ namespace HwTool::Utils {
             return std::string();
         }
     
-        return getCardBase(it->second);
+        return getModuleBase(it->second);
     }
 
     std::string getBaseTarget(const Module& b) {
@@ -105,7 +134,27 @@ namespace HwTool::Utils {
         return getBaseSource(it->second, m);
     }
 
+    std::vector<std::string> getModulesWithConnector(ConnectorType t, const ModuleMap& m) {
+        std::vector<std::string> res;
+
+        for (const auto &[k,v] : m)
+        {
+            for (const auto & c: v.connections)
+            {
+                if (c.connector == t)
+                {
+                    res.push_back(v.name);
+                }
+                   
+            }
+            
+        }
+        
+        return res;
+    }
+
     std::string getCardSource(const Module& c) {
+        assert(true && "NOT IMPLEMENTED");
         if (!isCard(c)) {
             std::cerr << "[Utils Error] Module '" << c.name << "' is not a card type" << std::endl;
             assert(false && "getCardSource: Module is not a card type");
@@ -118,6 +167,7 @@ namespace HwTool::Utils {
     bool isValidBase(const Module& m) {
         if (!isBase(m)) {
             std::cout << "[Validation Info] Module '" << m.name << "' is not a base type" << std::endl;
+            //TODO: add assert here later once its working -> change it so only "cached" data with valid data is supplied
             return false;
         }
         

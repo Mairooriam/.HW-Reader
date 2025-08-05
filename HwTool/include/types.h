@@ -144,12 +144,13 @@ namespace HwTool{
         }
 
         std::string getRootBase(const ModuleMap& m);
-        std::string getCardBase(const Module& c);
-        std::string getCardBase(const std::string& b, const ModuleMap& m);
+        std::string getEndBase(const ModuleMap& m);
+        std::string getModuleBase(const Module& c);
+        std::string getModuleBase(const std::string& b, const ModuleMap& m);
         std::string getBaseTarget(const Module& b);
         std::string getBaseSource(const Module& b, const ModuleMap& m);
         std::string getBaseSource(const std::string& b, const ModuleMap& m);
-
+        std::vector<std::string> getModulesWithConnector(ConnectorType t, const ModuleMap& m);
         std::string getCardSource(const Module& c);
         
         bool isValidBase(const Module& m);

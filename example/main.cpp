@@ -60,6 +60,7 @@ int main(int argc, char const *argv[])
 
     hw.importHW("hardware.hw");
     std::vector<std::string> validcards5 = hw.getAvailableCards();
+
     for (size_t i = 0; i < validcards5.size(); ++i) {
         std::cout << std::format("[{:>2}] - {}\n", i, validcards5[i]);
     }
