@@ -53,30 +53,22 @@ namespace HwTool::Utils {
         return res[0];
     }
 
-    std::string getModuleBase(const Module& c) {
-        bool card = isCard(c);
-        bool cpu = isCpu(c);
-        if (!card && !cpu) {
+    std::string getCardBase(const Module& c) {
+        if (!isCard(c)) {
             std::cerr << "[Utils Error] Module '" << c.name << "' is not a card type" << std::endl;
-            assert(false && "getModuleBase: Module is not a card or CPU type");
+            assert(false && "getCardBase: Module is not a card or CPU type");
             return std::string();
         }
         
         if (c.connections.size() < 1 || c.connections.size() > 2) {
             std::cerr << "[Utils Error] Card '" << c.name << "' must have 1 or 2 connections, but has " << c.connections.size() << std::endl;
-            assert(false && "getModuleBase: Card must have 1 or 2 connections");
+            assert(false && "getCardBase: Card must have 1 or 2 connections");
             return std::string();
         }
-        
-        if (card)
-            return c.connections[1].targetModuleName;
-
-        if (cpu)
-            return c.connections[0].targetModuleName;
-        
+        return c.connections[1].targetModuleName;
     }
 
-    std::string getModuleBase(const std::string& b, const ModuleMap& m) {
+    std::string getCardBase(const std::string& b, const ModuleMap& m) {
         auto it = m.find(b);
         if (it == m.end()) {
             std::cerr << "[WARNING] getCardBase(string, modulemap) - Couldn't find base from the supplied map" << std::endl;
@@ -84,7 +76,34 @@ namespace HwTool::Utils {
             return std::string();
         }
     
-        return getModuleBase(it->second);
+        return getCardBase(it->second);
+    }
+
+    std::string getCpuBase(const Module& c) {
+        if (!isCpu(c)) {
+            std::cerr << "[Utils Error] Module '" << c.name << "' is not a CPU type" << std::endl;
+            assert(false && "getCpuBase: Module is not a CPU type");
+            return std::string();
+        }
+        
+        //TODO: this will fail on new CPUS
+        if (c.connections.size() != 1) {
+            std::cerr << "[Utils Error] Card '" << c.name << "' must have 1 connections, but has " << c.connections.size() << std::endl;
+            assert(false && "getCpuBase: Card must have 1 connections");
+            return std::string();
+        }
+        return c.connections[0].targetModuleName;
+    }
+
+    std::string getCpuBase(const std::string& c, const ModuleMap& m) {
+        auto it = m.find(c);
+        if (it == m.end()) {
+            std::cerr << "[WARNING] getCpuBase(string, modulemap) - Couldn't find Cpu from the supplied map" << std::endl;
+            assert(false && "getCpuBase: Module not found in map");
+            return std::string();
+        }
+    
+        return getCpuBase(it->second);
     }
 
     std::string getBaseTarget(const Module& b) {
@@ -132,6 +151,37 @@ namespace HwTool::Utils {
         }
         
         return getBaseSource(it->second, m);
+    }
+
+    std::string getCpuBaseSource(const Module& b, const ModuleMap& m) {
+            if (!isCpuBase(b)) {
+            std::cerr << "[Utils Error] Module '" << b.name << "' is not a Cpubase type" << std::endl;
+            assert(false && "getCpuBaseSource: Module is not a base type");
+            return std::string();
+        }
+        
+        for (const auto& [k, v] : m) {
+            if (!Utils::isValidBase(v)) //TODO: currently this is causing comparison only against normal bases not bus bases
+                continue;
+                
+            if (v.connections[0].targetModuleName == b.name)
+                return v.name;
+        }
+        
+
+        std::cerr << "std::string getBaseSource(Module, ModuleMap) Failed\n";
+        return std::string();
+    }
+
+    std::string getCpuBaseSource(const std::string& b, const ModuleMap& m) {
+        auto it = m.find(b);
+        if (it == m.end()){
+            std::cerr << "[Utils Error] getCpuBaseSource(string, map): Base '" << b << "' not found in map" << std::endl;
+            assert(false && "getCpuBaseSource: Base not found in map");
+            return std::string();
+        }
+        
+        return getCpuBaseSource(it->second, m);
     }
 
     std::vector<std::string> getModulesWithConnector(ConnectorType t, const ModuleMap& m) {

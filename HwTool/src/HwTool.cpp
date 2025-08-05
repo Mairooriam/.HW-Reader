@@ -298,8 +298,34 @@ namespace HwTool {
 
     void Hw::combineToExisting(ModuleMap& modules, const std::string& target) {
         auto rootBase = Utils::getRootBase(modules);
-        auto targetBase = Utils::getModuleBase(target, m_modules);
-        auto targetBaseSource = Utils::getBaseSource(targetBase, m_modules); 
+        //TODO: re think this whole thing. it needs some typing perhaps. relies on strings.
+        auto it = m_modules.find(target);
+        if (it == m_modules.end())
+        {
+            assert(false && "For now assert :) Will be triggered at some point fix :)");
+            return;
+        }
+        std::string targetBase;
+        bool card = Utils::isCard(it->second);
+        bool cpu = Utils::isCpu(it->second);
+        if (card){
+            targetBase = Utils::getCardBase(m_modules[target]); //TODO: m_modules[target] will crash at somepoint :) have fun.
+        } else if (cpu){
+            targetBase = Utils::getCpuBase(m_modules[target]);
+        }else{
+            assert(false && "Not implemented");
+        }
+        
+        std::string targetBaseSource;
+        if (card){
+            targetBaseSource = Utils::getBaseSource(targetBase, m_modules);  //TODO: This should have cached bases not m_modules in the end
+        } else if (cpu){
+            targetBaseSource = Utils::getCpuBaseSource(targetBase, m_modules);
+        }else{
+            assert(false && "Not implemented");
+        }
+        
+
         modules[rootBase].connections[0].targetModuleName = targetBase;
         for (const auto& [name, module] : modules) {
             m_modules[name] = module;

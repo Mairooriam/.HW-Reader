@@ -118,9 +118,12 @@ namespace HwTool{
 
         //TODO: later maybe vetor? -> dynamic -> load from json etc.
         constexpr std::array<cardType, 3> baseTypes = {
-            cardType::X20BM11
-        };
+            cardType::X20BM11,
 
+        };
+        constexpr std::array<cardType, 3> cpuBaseTypes = {
+            cardType::X20BB52,
+        };
         constexpr std::array<cardType, 10> cardTypes = {
             cardType::X20AI4622,
             cardType::X20AI4632,
@@ -131,6 +134,9 @@ namespace HwTool{
 
         constexpr bool isBase(const Module& m) {
             return std::find(baseTypes.begin(), baseTypes.end(), m.type) != baseTypes.end();
+        }
+        constexpr bool isCpuBase(const Module& m) {
+            return std::find(cpuBaseTypes.begin(), cpuBaseTypes.end(), m.type) != cpuBaseTypes.end();
         }
         constexpr bool isCard(const Module& m) {
             return std::find(cardTypes.begin(), cardTypes.end(), m.type) != cardTypes.end();
@@ -145,11 +151,19 @@ namespace HwTool{
 
         std::string getRootBase(const ModuleMap& m);
         std::string getEndBase(const ModuleMap& m);
-        std::string getModuleBase(const Module& c);
-        std::string getModuleBase(const std::string& b, const ModuleMap& m);
+
         std::string getBaseTarget(const Module& b);
         std::string getBaseSource(const Module& b, const ModuleMap& m);
         std::string getBaseSource(const std::string& b, const ModuleMap& m);
+        std::string getCpuBaseSource(const Module& b, const ModuleMap& m);
+        std::string getCpuBaseSource(const std::string& b, const ModuleMap& m);
+        std::string getCardBase(const Module& c);
+        std::string getCardBase(const std::string& b, const ModuleMap& m);
+
+        std::string getCpuBase(const Module& c);
+        std::string getCpuBase(const std::string& c, const ModuleMap& m);
+
+
         std::vector<std::string> getModulesWithConnector(ConnectorType t, const ModuleMap& m);
         std::string getCardSource(const Module& c);
         
