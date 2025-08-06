@@ -1,6 +1,7 @@
 #include <iostream>
 #include <HwTool.h>
 #include <format>
+
 int main(int argc, char const *argv[])
 {
     using namespace HwTool;
@@ -82,6 +83,7 @@ int main(int argc, char const *argv[])
     }
     printf("Example done\n");
 
+    hw.render();
 
     return 0;
 }

@@ -168,7 +168,7 @@ namespace HwTool {
 
     void Hw::importHW(const std::filesystem::path& path, const std::string& version) {
         printf("importing HW\n");
-
+        
         ModuleXmlImporter importer(path);
         if (importer.valid()) {
             importer.mapModules();
@@ -177,6 +177,26 @@ namespace HwTool {
         } else {
             importer.printErrors();
         }
+        m_cacheBase.clear();
+        m_cacheCard.clear();
+
+
+
+        //TODO: FOR NOW here later do elsewhere
+        // Base cache
+        auto baseView = m_modules | std::views::filter([](const auto& pair) {
+            return Utils::isBase(pair.second);
+        });
+        std::ranges::copy(baseView, std::inserter(m_cacheBase, m_cacheBase.end()));
+        
+        // card cache
+        auto cardView = m_modules | std::views::filter([](const auto& pair) {
+            return Utils::isCard(pair.second);
+        });
+        std::ranges::copy(cardView, std::inserter(m_cacheCard, m_cacheCard.end()));
+        
+   
+
         resolveLinking();
         // TODO: status printing if it was succesfull etc.
     }
@@ -275,18 +295,24 @@ namespace HwTool {
         exporter.serialize(m_modules, path.string());
     }
 
+
+
     void Hw::exportMermaid(const std::filesystem::path& path) {
         printf("Exporting to mermaid\n");
         ModuleMermaidExporter exporter(path);
         exporter.serialize(m_modules);
     }
 
-    void Hw::render(IRenderer& renderer) const {
-        renderer.render(m_modules);
-    }
+
 
     
-    ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
+    void Hw::render()
+    {
+        Mir::Window renderer;
+        renderer.render(*this);
+    }
+
+ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
         auto keys = m_modules | std::views::keys;
         auto currentModules = std::set<std::string>(keys.begin(), keys.end());
         ModuleCsvImporter csvImporter(path,currentModules);

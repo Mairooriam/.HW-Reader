@@ -17,6 +17,8 @@ namespace HwTool{
         void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const Connector& connector);
         void serialize(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent, const Module& mod);
         void serialize(const ModuleMap& modules, const std::string& filename);
+        void serialize(const ModuleMap& modules, std::ostream& stream);
+        void createXmlDocument(tinyxml2::XMLDocument& doc, const ModuleMap& modules);
     };
 
 }

@@ -75,20 +75,34 @@ namespace HwTool{
     void ModuleXmlExporter::serialize(const ModuleMap& modules,
                                       const std::string& filename) {
         tinyxml2::XMLDocument doc;
+        createXmlDocument(doc, modules);
+        doc.SaveFile(filename.c_str());
+    }
+
+    void ModuleXmlExporter::serialize(const ModuleMap& modules, std::ostream& stream) {
+        tinyxml2::XMLDocument doc;
+        createXmlDocument(doc, modules);
+        
+        tinyxml2::XMLPrinter printer;
+        doc.Print(&printer);
+        stream << printer.CStr();
+    }
+
     
+    void ModuleXmlExporter::createXmlDocument(tinyxml2::XMLDocument& doc,
+                                              const ModuleMap& modules) {
+
         auto* decl = doc.NewDeclaration(R"(xml version="1.0" encoding="utf-8")");
         doc.InsertFirstChild(decl);
         auto* asInstr = doc.NewDeclaration(R"(AutomationStudio Version=6.0.2.177 FileVersion="4.9")");
         doc.InsertEndChild(asInstr);
-    
+
         auto* root = doc.NewElement("Hardware");
         root->SetAttribute("xmlns", "http://br-automation.co.at/AS/Hardware");
         doc.InsertEndChild(root);
-    
+
         for (const auto& [name, mod] : modules) {
             serialize(doc, root, mod);
         }
-    
-        doc.SaveFile(filename.c_str());
     }
-}
+}  // namespace HwTool

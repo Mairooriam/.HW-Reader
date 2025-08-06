@@ -8,6 +8,11 @@ set(SOURCES
     src/DataAccess/ModuleCsvImporter.cpp
     src/commands/Commands.cpp
     src/Renderer/ConsoleRenderer.cpp
+    
+
+    src/Renderer/OpenglWindow.cpp
+    src/Renderer/ImGuiLayer.cpp
+    src/Renderer/shader.cpp
 
 
 )
@@ -25,7 +30,15 @@ add_library(hwtoollib
 target_include_directories(hwtoollib PUBLIC
     ${EXTERNAL_INCLUDES}
 )
-
-target_link_libraries(hwtoollib PUBLIC tinyxml2::tinyxml2)
+set(EXTERNAL_LIBS
+  glad
+  glfw
+  OpenGL::GL
+  glm
+  imgui
+  tinyxml2::tinyxml2
+)
+find_package(OpenGL REQUIRED)
+target_link_libraries(hwtoollib PUBLIC ${EXTERNAL_LIBS})
 
 
