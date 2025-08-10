@@ -5,6 +5,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include <tinyxml2.h>
 #include <algorithm>
+#include <unordered_map>
 #include <iostream>
 //TODO: move implementations to .cpp file for the printings or separate
 
@@ -155,7 +156,11 @@ namespace HwTool{
         std::string getBaseTarget(const Module& b);
         std::string getBaseSource(const Module& b, const ModuleMap& m);
         std::string getBaseSource(const std::string& b, const ModuleMap& m);
+        std::string getBaseCard(const std::string& b, const ModuleMap& m);
+
+        
         std::string getCpuBaseSource(const Module& b, const ModuleMap& m);
+
         std::string getCpuBaseSource(const std::string& b, const ModuleMap& m);
         std::string getCardBase(const Module& c);
         std::string getCardBase(const std::string& b, const ModuleMap& m);

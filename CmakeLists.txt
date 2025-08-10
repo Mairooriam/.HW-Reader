@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(HwTool)
 
+
 # Set C++23 standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,4 +32,12 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "C
     target_compile_options(hwtoollib PRIVATE -std=c++23)
 endif()
 
+message(STATUS "")
+message(STATUS "Configuration Summary:")
+message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "  Build Tests: ${BUILD_TESTS}")
+message(STATUS "  Output Directory: ${CMAKE_BINARY_DIR}")
+message(STATUS "")
 

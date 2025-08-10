@@ -153,6 +153,28 @@ namespace HwTool::Utils {
         return getBaseSource(it->second, m);
     }
 
+    std::string getBaseCard(const std::string& b, const ModuleMap& m) {
+        for (const auto &[k,v] : m)
+        {
+            for (auto &&con: v.connections)
+            {
+                if (con.connector == ConnectorType::SL)
+                {
+                    if (con.targetModuleName == b)
+                    {  
+                        return v.name;
+                    }
+                    
+                }
+                
+            }
+
+            
+        }
+        
+        return std::string();
+    }
+
     std::string getCpuBaseSource(const Module& b, const ModuleMap& m) {
             if (!isCpuBase(b)) {
             std::cerr << "[Utils Error] Module '" << b.name << "' is not a Cpubase type" << std::endl;

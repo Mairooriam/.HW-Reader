@@ -10,6 +10,7 @@
 #include "Renderer/IRenderer.h"
 #include "Types.h"
 #include "Renderer/OpenglWindow.h"
+#include "RenderData.h"
 // TODO: make addCardBatch ->> addCard has performance problems regarding iterating over m_modules +
 // incrementStr etc. could be fixed internally but easiest is "batch" add
 // TODO: Rework getCardBase, getCardSource, getCardTarget. relies on strings not strongly typed.
@@ -24,9 +25,13 @@ namespace HwTool {
     private:
         ModuleMap m_modules;
         std::unordered_map<std::string, std::string> m_cacheBaseLink;
+        std::unordered_map<std::string, std::string> m_cacheBaseLinkReverse;
+
         std::unordered_map<std::string, Module> m_cacheModules;
         std::unordered_map<std::string, Module> m_cacheBase;
         std::unordered_map<std::string, Module> m_cacheCard;
+        std::vector<std::string> m_chain;
+        std::vector<std::string> m_cardChain;
 
         ModuleMap getModules() const {
             return m_modules;
@@ -40,6 +45,7 @@ namespace HwTool {
         CommandManager m_cmdManager;
         void LinkToTargetInternal(const std::string& targetModule);
         void deleteCardInternal(const std::string& name);
+        void rebuildCaches();
 
         // UTILS
         std::string getCardBase(const std::string& card);
@@ -76,7 +82,12 @@ namespace HwTool {
         void redo();
 
         const ModuleMap& getCardCache() { return m_cacheCard; };
-
+        
+        //TODO: make const
+        RenderData getRenderData() {
+            return RenderData(m_modules, m_cacheBaseLink, m_cacheBaseLinkReverse,  m_cacheModules, 
+                            m_cacheBase, m_cacheCard, getAvailableCards(), m_chain, m_cardChain);
+        }
     private:
         friend class LinkToTargetCommand;
         friend class deleteCardCommand;

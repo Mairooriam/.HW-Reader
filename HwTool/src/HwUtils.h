@@ -18,8 +18,6 @@ inline std::string nextSuffix(std::string suffix) {
     return suffix;
 }
 
-
-
 template<typename StringContainer>
 requires HasContains<StringContainer, std::string>
 std::string incrementStr(const std::string& str, const StringContainer& currentStrs) {

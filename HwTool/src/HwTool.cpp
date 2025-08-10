@@ -177,28 +177,62 @@ namespace HwTool {
         } else {
             importer.printErrors();
         }
+        
+        resolveLinking();
+        rebuildCaches();
+    }
+    void Hw::rebuildCaches() {
         m_cacheBase.clear();
         m_cacheCard.clear();
+        m_chain.clear();
+        m_cardChain.clear();
+        m_cacheBaseLink.clear();
+        m_cacheBaseLinkReverse.clear();
 
-
-
-        //TODO: FOR NOW here later do elsewhere
-        // Base cache
         auto baseView = m_modules | std::views::filter([](const auto& pair) {
             return Utils::isBase(pair.second);
         });
         std::ranges::copy(baseView, std::inserter(m_cacheBase, m_cacheBase.end()));
         
-        // card cache
         auto cardView = m_modules | std::views::filter([](const auto& pair) {
             return Utils::isCard(pair.second);
         });
         std::ranges::copy(cardView, std::inserter(m_cacheCard, m_cacheCard.end()));
         
-   
+        for (auto &&[k,v] : m_cacheBase) {
+            if(!v.connections[0].targetModuleName.empty()){
+                m_cacheBaseLink[v.name] = v.connections[0].targetModuleName;
+            } else {
+                m_cacheBaseLink[v.name] = "";
+            }
+        }
 
-        resolveLinking();
-        // TODO: status printing if it was succesfull etc.
+        for (const auto& [key, value] : m_cacheBaseLink) {
+            m_cacheBaseLinkReverse[value] = key;
+        }
+
+        auto it = m_cacheBaseLinkReverse.find("X20BB52");
+        if (it != m_cacheBaseLinkReverse.end()) {
+            std::string first = it->first;
+            std::string second = it->second;
+            
+            for (size_t i = 0; i < m_cacheBaseLinkReverse.size(); i++) {
+                m_chain.push_back(first);
+                auto it = m_cacheBaseLinkReverse.find(second);
+                if (it != m_cacheBaseLinkReverse.end()) {
+                    first = it->first;
+                    second = it->second;
+                } else {
+                    m_chain.push_back(second);
+                    break;
+                }
+            }
+        }
+        
+
+        for (auto &&v : m_chain) {
+        m_cardChain.push_back(Utils::getBaseCard(v, m_modules)); 
+        }
     }
 
     void Hw::LinkToTargetInternal(const std::string& targetModule) {
@@ -219,6 +253,8 @@ namespace HwTool {
         m_modules[m_addCardBuffer.card.name] = m_addCardBuffer.card;
 
         resolveLinking();
+
+        rebuildCaches();
     }
 
     void Hw::createCard(const std::string& name, cardType type) {
@@ -255,6 +291,7 @@ namespace HwTool {
         }
 
         this->resolveLinking();
+        rebuildCaches();
     }
 
     void Hw::linkToTarget(const std::string& targetModule) {
@@ -309,7 +346,7 @@ namespace HwTool {
     void Hw::render()
     {
         Mir::Window renderer;
-        renderer.render(*this);
+        renderer.render(getRenderData());
     }
 
 ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
@@ -363,6 +400,9 @@ ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& ve
             m_modules[targetBaseSource].connections[0].targetModuleName = importEnd;
         }
         resolveLinking();
+
+
+
     }
 
 }  // namespace HwTool

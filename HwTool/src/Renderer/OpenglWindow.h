@@ -7,7 +7,7 @@
 #include "IExample.h"
 #include <memory>
 #include "ExampleManager.h"
-#include "HwTool.h"
+#include "RenderData.h"
 namespace Mir
 {
     struct RenderState {
@@ -35,11 +35,17 @@ namespace Mir
         void processInput();
     public:
         Window(int w = 800, int h = 600, const char* name = "Learning OpenGL");
-        void render(HwTool::Hw& hw);
+        void render(const HwTool::RenderData& hw);
         void addExample(std::unique_ptr<IExample> example);
         void selectExample(size_t index);
         ExampleManager& getExampleManager() { return m_exampleManager; }
         ~Window();
+        ImGuiLayer& getImGuiLayer() { return *m_imguiLayer; }
+
+
+        bool shouldClose() const { 
+            return glfwWindowShouldClose(m_window); 
+        }
     };
     
 
