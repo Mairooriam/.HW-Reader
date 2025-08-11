@@ -14,6 +14,11 @@ set(SOURCES
     src/Renderer/ImGuiLayer.cpp
     src/Renderer/shader.cpp
 
+    src/Renderer/ImGui/HardwareView.cpp
+    src/Renderer/ImGui/MenuBar.cpp
+    src/Renderer/ImGui/StateInfo.cpp
+    src/Renderer/ImGui/ToolBar.cpp
+
 
 )
 set(EXTERNAL_INCLUDES

@@ -343,19 +343,22 @@ namespace HwTool {
 
 
     
-    void Hw::render()
-    {
-        Mir::Window renderer;
-        renderer.render(getRenderData());
+    void Hw::render() {
+        if (m_renderer) {
+            m_renderer->render(getRenderData());
+        } else {
+            std::cerr << "Warning: No renderer set for Hw::render()\n";
+        }
     }
 
 ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& version) {
         auto keys = m_modules | std::views::keys;
         auto currentModules = std::set<std::string>(keys.begin(), keys.end());
         ModuleCsvImporter csvImporter(path,currentModules);
-        if (csvImporter.valid())
-            return csvImporter.getModules();
-   
+        if (csvImporter.valid()){
+            m_cacheImportCsv = csvImporter.getModules();
+            return m_cacheImportCsv;
+        }
         return ModuleMap();
     }
 

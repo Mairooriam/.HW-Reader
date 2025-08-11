@@ -1,12 +1,12 @@
 
 #pragma once
-#include <unordered_map>
-#include "Types.h"
+
+namespace HwTool { struct RenderData; }
 
 namespace HwTool {
     class IRenderer {
     public:
         virtual ~IRenderer() = default;
-        virtual void render(const ModuleMap& modules) = 0;
+        virtual void render(const HwTool::RenderData& modules) = 0;
     };
 }

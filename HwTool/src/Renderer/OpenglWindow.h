@@ -2,12 +2,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <string>
+#include <memory>
 #include "ImGuiLayer.h"
-#include <memory>
 #include "IExample.h"
-#include <memory>
 #include "ExampleManager.h"
 #include "RenderData.h"
+#include "IRenderer.h"
+#include <vector>
 namespace Mir
 {
     struct RenderState {
@@ -18,7 +19,7 @@ namespace Mir
         ExampleManager* exampleManager;
     };
 
-    class Window
+    class Window : public HwTool::IRenderer
     {
     private:
         GLFWwindow* m_window; 
@@ -35,7 +36,7 @@ namespace Mir
         void processInput();
     public:
         Window(int w = 800, int h = 600, const char* name = "Learning OpenGL");
-        void render(const HwTool::RenderData& hw);
+        void render(const HwTool::RenderData& hw) override;
         void addExample(std::unique_ptr<IExample> example);
         void selectExample(size_t index);
         ExampleManager& getExampleManager() { return m_exampleManager; }

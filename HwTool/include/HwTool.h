@@ -9,7 +9,6 @@
 #include "HwUtils.h"
 #include "Renderer/IRenderer.h"
 #include "Types.h"
-#include "Renderer/OpenglWindow.h"
 #include "RenderData.h"
 // TODO: make addCardBatch ->> addCard has performance problems regarding iterating over m_modules +
 // incrementStr etc. could be fixed internally but easiest is "batch" add
@@ -24,14 +23,18 @@ namespace HwTool {
     class Hw {
     private:
         ModuleMap m_modules;
+        ModuleMap m_cacheModules;
+        ModuleMap m_cacheBase;
+        ModuleMap m_cacheCard;
+        ModuleMap m_cacheImportCsv;
+
         std::unordered_map<std::string, std::string> m_cacheBaseLink;
         std::unordered_map<std::string, std::string> m_cacheBaseLinkReverse;
 
-        std::unordered_map<std::string, Module> m_cacheModules;
-        std::unordered_map<std::string, Module> m_cacheBase;
-        std::unordered_map<std::string, Module> m_cacheCard;
         std::vector<std::string> m_chain;
         std::vector<std::string> m_cardChain;
+
+        IRenderer* m_renderer = nullptr;
 
         ModuleMap getModules() const {
             return m_modules;
@@ -75,6 +78,7 @@ namespace HwTool {
 
         // not implemented
         void render();
+        void setRenderer(IRenderer* renderer) { m_renderer = renderer; }
         ModuleMap importCSV(const std::filesystem::path& path, const std::string& version = "");
         void combineToExisting(ModuleMap& modules, const std::string& target);
 
@@ -86,7 +90,7 @@ namespace HwTool {
         //TODO: make const
         RenderData getRenderData() {
             return RenderData(m_modules, m_cacheBaseLink, m_cacheBaseLinkReverse,  m_cacheModules, 
-                            m_cacheBase, m_cacheCard, getAvailableCards(), m_chain, m_cardChain);
+                            m_cacheBase, m_cacheCard, m_cacheImportCsv, getAvailableCards(), m_chain, m_cardChain);
         }
     private:
         friend class LinkToTargetCommand;

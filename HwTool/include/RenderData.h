@@ -5,13 +5,18 @@
 #include "types.h"
 
 namespace HwTool {
+   
+    
+
+
     struct RenderData {
         const ModuleMap* modules;
         const std::unordered_map<std::string, std::string>* cacheBaseLink;
         const std::unordered_map<std::string, std::string>* cacheBaseLinkReverse;
-        const std::unordered_map<std::string, Module>* cacheModules;
-        const std::unordered_map<std::string, Module>* cacheBase;
-        const std::unordered_map<std::string, Module>* cacheCard;
+        const ModuleMap* cacheModules;
+        const ModuleMap* cacheBase;
+        const ModuleMap* cacheCard;
+        const ModuleMap* cacheImportCsv;
         std::vector<std::string> availableCards;
         std::vector<std::string> chain;
         std::vector<std::string> cardChain;
@@ -21,9 +26,10 @@ namespace HwTool {
         RenderData(const ModuleMap& mod,
                    const std::unordered_map<std::string, std::string>& baseLink,
                    const std::unordered_map<std::string, std::string>& BaseLinkReverse,
-                   const std::unordered_map<std::string, Module>& modules,
-                   const std::unordered_map<std::string, Module>& base,
-                   const std::unordered_map<std::string, Module>& card,
+                   const ModuleMap& modules,
+                   const ModuleMap& base,
+                   const ModuleMap& card,
+                   const ModuleMap& csv,
                    std::vector<std::string> cards,
                    std::vector<std::string> chain,
                    std::vector<std::string> cardChain)
@@ -33,6 +39,7 @@ namespace HwTool {
               cacheModules(&modules),
               cacheBase(&base),
               cacheCard(&card),
+              cacheImportCsv(&csv),
               availableCards(std::move(cards)),
               chain(std::move(chain)),
               cardChain(std::move(cardChain)) {}
