@@ -16,7 +16,16 @@
 
 namespace Mir
 {
-    ImGuiLayer::ImGuiLayer(GLFWwindow* window): m_window(window) {
+    ImGuiLayer::ImGuiLayer(GLFWwindow* window): m_window(window),
+        m_importCsvView(),
+        m_allModulesView(),
+        m_cardsOnlyView(),
+        m_basesOnlyView(),
+        m_cpusOnlyView(),
+        m_ai4622CardsView(),
+        m_diModulesView(),
+        m_connectedModulesView()
+    {
         // Setup Dear ImGui context - make sure we're saving this context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -81,8 +90,18 @@ namespace Mir
 
         MenuBar::render(m_eventDispatcher);
         ToolBar::render(m_eventDispatcher, state_.selectedCard);
-        HardwareView::render(hw, state_.selectedCard);
-        StateInfo::render(state_.selectedCard);
+
+        m_importCsvView.render("Import CSV View", *hw.cacheImportCsv, state_.selectedCard);
+        m_allModulesView.render("All Modules", *hw.modules, state_.selectedCard);
+        m_cardsOnlyView.render("Cards Only", *hw.modules, state_.selectedCard);
+        m_basesOnlyView.render("Bases Only", *hw.modules, state_.selectedCard);
+        m_cpusOnlyView.render("CPUs Only", *hw.modules, state_.selectedCard);
+        m_ai4622CardsView.render("AI4622 Cards", *hw.modules, state_.selectedCard);
+        m_diModulesView.render("DI Modules", *hw.modules, state_.selectedCard);
+        m_connectedModulesView.render("Connected Modules", *hw.modules, state_.selectedCard);
+
+
+        StateInfo::render(state_);
         }
 
 
