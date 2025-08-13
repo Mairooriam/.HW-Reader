@@ -21,8 +21,9 @@ namespace HwTool {
 
 
     class Hw {
-    private:
+        public:
         ModuleMap m_modules;
+    private:
         ModuleMap m_cacheModules;
         ModuleMap m_cacheBase;
         ModuleMap m_cacheCard;
@@ -80,6 +81,7 @@ namespace HwTool {
         void render();
         void setRenderer(IRenderer* renderer) { m_renderer = renderer; }
         ModuleMap importCSV(const std::filesystem::path& path, const std::string& version = "");
+        ModuleMap importCSV2(const std::filesystem::path& path, const std::string& version = "");
         void combineToExisting(ModuleMap& modules, const std::string& target);
 
         void undo();

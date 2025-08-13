@@ -20,8 +20,9 @@ namespace Mir {
         HardwareView m_ai4622CardsView;
         HardwareView m_diModulesView;
         HardwareView m_connectedModulesView;
-        
-        
+        HardwareView m_cpuConnectedView;
+        HardwareView m_hardwareView;
+        HardwareView m_hardwareView2;
         public:
         struct State {
             std::string selectedCard;

@@ -23,10 +23,11 @@ namespace Mir
         m_basesOnlyView(),
         m_cpusOnlyView(),
         m_ai4622CardsView(),
-        m_diModulesView(),
-        m_connectedModulesView()
+        m_diModulesView()
+
     {
-        // Setup Dear ImGui context - make sure we're saving this context
+
+
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
@@ -36,7 +37,6 @@ namespace Mir
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        // Setup Dear ImGui style
         ImGui::StyleColorsDark();
 
         ImGuiStyle& style = ImGui::GetStyle();
@@ -46,7 +46,6 @@ namespace Mir
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 
-        // Setup Platform/Renderer backends
         ImGui_ImplGlfw_InitForOpenGL(m_window, true);
         ImGui_ImplGlfw_SetCallbacksChainForAllWindows(true); 
         ImGui_ImplOpenGL3_Init("#version 330");
@@ -57,7 +56,6 @@ namespace Mir
     }
     
     void ImGuiLayer::begin() {
-        // Make sure we're operating on the right ImGui context before starting a new frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -90,26 +88,17 @@ namespace Mir
 
         MenuBar::render(m_eventDispatcher);
         ToolBar::render(m_eventDispatcher, state_.selectedCard);
-
-        m_importCsvView.render("Import CSV View", *hw.cacheImportCsv, state_.selectedCard);
-        m_allModulesView.render("All Modules", *hw.modules, state_.selectedCard);
-        m_cardsOnlyView.render("Cards Only", *hw.modules, state_.selectedCard);
-        m_basesOnlyView.render("Bases Only", *hw.modules, state_.selectedCard);
-        m_cpusOnlyView.render("CPUs Only", *hw.modules, state_.selectedCard);
-        m_ai4622CardsView.render("AI4622 Cards", *hw.modules, state_.selectedCard);
-        m_diModulesView.render("DI Modules", *hw.modules, state_.selectedCard);
-        m_connectedModulesView.render("Connected Modules", *hw.modules, state_.selectedCard);
-
-
+        std::vector<HardwareView::CacheOption> caches = {
+            {"Import CSV", hw.cacheImportCsv},
+            {"All Modules", hw.modules}
+        };
+        
+        m_hardwareView.setCaches(caches);
+        m_hardwareView.render("Hardware View", *hw.modules, state_.selectedCard);
+        m_hardwareView2.setCaches(caches);
+        m_hardwareView2.render("Hardware View 2", *hw.modules, state_.selectedCard);
         StateInfo::render(state_);
         }
-
-
-
-
-
-
-
         void ImGuiLayer::terminate() {
             ImGui_ImplOpenGL3_Shutdown();
             ImGui_ImplGlfw_Shutdown();

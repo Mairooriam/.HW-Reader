@@ -7,11 +7,14 @@
 #include <algorithm>
 #include <unordered_map>
 #include <iostream>
+#include <iterator>
 //TODO: move implementations to .cpp file for the printings or separate
 
 template<typename T, typename Key>
 concept HasContains = requires(T t, Key k) {
     { t.contains(k) } -> std::convertible_to<bool>;
+    { t.begin() } -> std::input_or_output_iterator;
+    { t.end() } -> std::input_or_output_iterator;
 };
 namespace HwTool{
     
@@ -61,20 +64,44 @@ namespace HwTool{
         X2X1,
         X2X2,
         IF6,
+        IF3,
+        PLK1,
+        PLK2,
     
         NONE = 128,
     };
-    
+
+    enum class CableType{
+        ERROR = 0,
+        POWERLINK_CABLE,
+
+        NONE = 128,
+    };
+    struct Cable{
+        CableType type;
+        size_t lenght;
+        std::string version;
+
+        Cable() = default;
+        Cable(CableType t, size_t l, const std::string& v):
+        type(t),
+        lenght(l),
+        version(std::move(v)){};
+    };
     
     struct Connection{
         ConnectorType connector;
         std::string targetModuleName;
         Module* targetModule;
         ConnectorType targetConnector;
-    
+        Cable cable;
         Connection() = default;
-        Connection(ConnectorType conn, ConnectorType targetConn, Module* targetMod = nullptr, std::string targetName = "")
-            : connector(conn), targetModuleName(std::move(targetName)), targetModule(targetMod), targetConnector(targetConn) {}
+        Connection(ConnectorType c, ConnectorType tc, Module* tm = nullptr, std::string tn = "", Cable ca = Cable())
+            : connector(c), 
+            targetModuleName(std::move(tn)), 
+            targetModule(tm), 
+            targetConnector(tc),
+            cable(ca) {}
     };
     
     struct Parameter{
@@ -99,14 +126,16 @@ namespace HwTool{
         std::vector<Parameter> parameters;
         Connector connector;
         Group group;
+        size_t nodeNumber;
     
         Module() = default;
         Module(std::string n, cardType t, std::string v,
                std::vector<Connection> conns = {},
                std::vector<Parameter> params = {},
-               Group g = {})
+               Group g = {},
+                size_t nn = 0)
             : name(std::move(n)), type(t), version(std::move(v)),
-              connections(std::move(conns)), parameters(std::move(params)), group(std::move(g)) {}
+              connections(std::move(conns)), parameters(std::move(params)), group(std::move(g)), nodeNumber(nn) {}
     };
     
     struct ModulePack {

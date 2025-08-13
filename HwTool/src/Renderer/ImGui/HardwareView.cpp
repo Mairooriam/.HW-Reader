@@ -128,37 +128,72 @@ namespace {
 }
 
 namespace Mir {
-    // Constructor - initialize state
+
     HardwareView::HardwareView() {
         m_state.filter = showAll();
         m_state.filterType = FilterType::All;
         m_state.filterName = "All";
         m_state.selectedCardType = HwTool::cardType::ERROR;
         m_state.namePattern = "";
+        m_state.selectedCacheIndex = 0;
     }
-    
-    // Main render function - now uses member state
+    void HardwareView::setCaches(const std::vector<CacheOption>& caches) {
+        m_caches = caches;
+        if (m_state.selectedCacheIndex >= m_caches.size()) {
+            m_state.selectedCacheIndex = 0;
+        }
+    }
+    void HardwareView::setFilter(ModuleFilter filter, FilterType filterType, const std::string& filterName) {
+        m_state.filter = filter;
+        m_state.filterType = filterType;
+        m_state.filterName = filterName;
+    }
+
     void HardwareView::render(const std::string& windowName, const HwTool::ModuleMap& moduleMap, 
                              std::string& selectedCard, const HwTool::ModuleMap* baseCardCache) {
         ImGui::Begin(windowName.c_str());
         
-        renderFilterSelection(); // Uses m_state internally
-        ImGui::Separator();
-        
-        for (auto&& [key, module] : moduleMap) {
-            if (m_state.filter(module)) {
-                renderCard(module, baseCardCache, selectedCard);
+        if (!m_caches.empty()) {
+            renderCacheSelection();
+            ImGui::Separator();
+            
+            renderFilterSelection();
+            ImGui::Separator();
+            
+            const HwTool::ModuleMap* currentModuleMap = m_caches[m_state.selectedCacheIndex].moduleMap;
+            
+            if (currentModuleMap) {
+                for (auto&& [key, module] : *currentModuleMap) {
+                    if (m_state.filter(module)) {
+                        renderCard(module, baseCardCache, selectedCard);
+                    }
+                }
             }
+        } else {
+            ImGui::Text("No caches available");
         }
         
         ImGui::End();
     }
-    
-    // Filter selection - now uses member state
+    void HardwareView::renderCacheSelection() {
+        ImGui::Text("Cache:");
+        ImGui::SameLine();
+        
+        if (!m_caches.empty()) {
+            std::vector<const char*> cacheNames;
+            for (const auto& cache : m_caches) {
+                cacheNames.push_back(cache.name.c_str());
+            }
+            
+            if (ImGui::Combo("##Cache", &m_state.selectedCacheIndex, cacheNames.data(), cacheNames.size())) {
+            }
+        }
+    }
     void HardwareView::renderFilterSelection() {
         ImGui::Text("Filter:");
         ImGui::SameLine();
         
+        //TODO: proper filters
         const char* filterNames[] = { "All", "Cards Only", "Bases Only", "CPUs Only", "CPU Bases Only", "By Type", "By Name" };
         int currentFilter = static_cast<int>(m_state.filterType);
         
@@ -195,7 +230,7 @@ namespace Mir {
             }
         }
         
-        // Additional controls for ByType and ByName
+        //TODO: Proper types
         if (m_state.filterType == FilterType::ByType) {
             ImGui::SameLine();
             const char* cardTypeNames[] = { "ERROR", "GPU", "CPU", "Memory", "Storage" }; 
@@ -217,7 +252,6 @@ namespace Mir {
         }
     }
     
-    // Static filter factory methods
     HardwareView::ModuleFilter HardwareView::showAll() {
         return [](const HwTool::Module& m) { return true; };
     }

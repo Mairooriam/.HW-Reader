@@ -11,6 +11,6 @@ namespace HwTool {
     public:
         ModuleCsvImporter(const std::filesystem::path& path, const std::set<std::string>& modules);
         ModuleMap getModules() override;
-
+        ModuleMap getModules2();
     };
 }

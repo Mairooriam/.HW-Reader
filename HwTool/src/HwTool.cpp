@@ -284,9 +284,14 @@ namespace HwTool {
         }
         m_modules.erase(name);
 
-        for (auto&& con : m_modules[deleteCardSource].connections) {
-            if (con.connector == ConnectorType::X2X1) {
-                con.targetModuleName = deleteCardTarget;
+        if (!deleteCardSource.empty()) {
+            auto it = m_modules.find(deleteCardSource);
+            if (it != m_modules.end()) {
+                for (auto&& con : it->second.connections) {
+                    if (con.connector == ConnectorType::X2X1) {
+                        con.targetModuleName = deleteCardTarget;
+                    }
+                }
             }
         }
 
@@ -361,7 +366,16 @@ ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& ve
         }
         return ModuleMap();
     }
-
+ModuleMap Hw::importCSV2(const std::filesystem::path& path, const std::string& version) {
+        auto keys = m_modules | std::views::keys;
+        auto currentModules = std::set<std::string>(keys.begin(), keys.end());
+        ModuleCsvImporter csvImporter(path,currentModules);
+        if (csvImporter.valid()){
+            m_cacheImportCsv = csvImporter.getModules();
+            return m_cacheImportCsv;
+        }
+        return ModuleMap();
+    }
     void Hw::combineToExisting(ModuleMap& modules, const std::string& target) {
         auto rootBase = Utils::getRootBase(modules);
         //TODO: re think this whole thing. it needs some typing perhaps. relies on strings.
@@ -391,8 +405,16 @@ ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& ve
             assert(false && "Not implemented");
         }
         
-
-        modules[rootBase].connections[0].targetModuleName = targetBase;
+        if (cpu)
+        {
+            modules[rootBase].connections[0].targetModuleName = targetBase;
+            modules[rootBase].connections[0].targetConnector = ConnectorType::IF6;
+        }else if (card){
+            modules[rootBase].connections[0].targetModuleName = targetBase;
+        }else{
+            assert(false && "Not implemented");
+        }
+        
         for (const auto& [name, module] : modules) {
             m_modules[name] = module;
         }
@@ -402,6 +424,7 @@ ModuleMap Hw::importCSV(const std::filesystem::path& path, const std::string& ve
         if (!targetBaseSource.empty()){
             m_modules[targetBaseSource].connections[0].targetModuleName = importEnd;
         }
+
         resolveLinking();
 
 

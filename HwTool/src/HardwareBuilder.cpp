@@ -35,9 +35,20 @@ namespace HwTool {
         Module m(name, type, version, std::vector<Connection>{con1,con2});
         return m;
     }
-    
-    
-    
+
+    Module HardwareBuilder::BusCard(const std::string &name, const std::string& baseName, cardType type, int nodeNumber, const std::string& version) {
+        //TODO: Add checking for if supplied base and ps are valid for supplied cardType
+
+        // TODO: createBaseFromType(); ->> creates valid base according to cardType supplied
+        Connection con3(ConnectorType::SL, ConnectorType::SL1, nullptr, baseName);
+        Module m(name, type, version, std::vector<Connection>{con3}, std::vector<Parameter>(), Group(), nodeNumber);
+        return m;
+    }
+
+
+
+
+
     ModulePack HardwareBuilder::IOCARD(const std::string &name, cardType type, const std::string& targetName, const std::string &version)
     {
         Module base = X20BM11("X20BM11_" + name, "1.1.0.0", nullptr, targetName);
